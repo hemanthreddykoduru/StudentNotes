@@ -37,9 +37,9 @@ export default function LoginScene() {
 
             <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
                 {/* Floating Books for Login Scene */}
-                <FloatingBook position={[0, 1, 0]} rotation={[0.2, 0.5, 0]} color="#6366f1" delay={0} />
-                <FloatingBook position={[-1.8, -1, -1]} rotation={[0, -0.3, 0.2]} color="#818cf8" delay={1.5} />
-                <FloatingBook position={[1.8, -1.2, -0.5]} rotation={[0.3, 0, -0.2]} color="#c084fc" delay={0.8} />
+                <FloatingBook position={[0, -0.5, 0]} rotation={[0.2, 0.5, 0]} color="#6366f1" delay={0} />
+                <FloatingBook position={[-1.8, -2.5, -1]} rotation={[0, -0.3, 0.2]} color="#818cf8" delay={1.5} />
+                <FloatingBook position={[1.8, -2.7, -0.5]} rotation={[0.3, 0, -0.2]} color="#c084fc" delay={0.8} />
             </Float>
 
             <ContactShadows position={[0, -3, 0]} opacity={0.4} scale={10} blur={2.5} far={4} />
