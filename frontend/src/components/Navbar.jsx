@@ -1,14 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useEffect, useState } from 'react';
-import { BookOpen, LogOut, ShoppingBag, User, Sun, Moon } from 'lucide-react';
+import { BookOpen, LogOut } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
     const [user, setUser] = useState(null);
     const [role, setRole] = useState('user');
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme();
+    const { theme } = useTheme();
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,13 +47,7 @@ export default function Navbar() {
                         </Link>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline-none"
-                            title="Toggle Theme"
-                        >
-                            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                        </button>
+                        <ThemeToggle />
 
                         {user ? (
                             <>
