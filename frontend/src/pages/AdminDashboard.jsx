@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Pencil, X } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, TrendingUp, Users, FileText, DollarSign } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
     const [notes, setNotes] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -19,8 +21,28 @@ export default function AdminDashboard() {
     });
 
     useEffect(() => {
-        fetchNotes();
+        fetchData();
     }, []);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            await Promise.all([fetchNotes(), fetchStats()]);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchStats = async () => {
+        try {
+            const { data } = await api.get('/analytics/stats');
+            setStats(data);
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        }
+    };
 
     const fetchNotes = async () => {
         try {
@@ -33,8 +55,6 @@ export default function AdminDashboard() {
             setNotes(data);
         } catch (error) {
             console.error('Error fetching notes:', error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -96,7 +116,7 @@ export default function AdminDashboard() {
             setShowForm(false);
             setEditingNote(null);
             setFormData({ title: '', subject: '', price: '', file: null, preview: null });
-            fetchNotes();
+            fetchData(); // Refresh everything including stats
 
         } catch (error) {
             console.error('Error saving note:', error);
@@ -125,6 +145,7 @@ export default function AdminDashboard() {
             await api.delete(`/notes/${id}`);
             alert('Note deleted successfully');
             fetchNotes();
+            fetchStats(); // Update active note count
         } catch (error) {
             console.error('Error deleting note:', error);
             alert('Failed to delete note');
@@ -141,15 +162,115 @@ export default function AdminDashboard() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Admin Dashboard</h1>
+
+            {/* Analytics Section */}
+            {stats && (
+                <div className="mb-12 space-y-8">
+                    {/* Key Metrics Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center">
+                            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 mr-4">
+                                <DollarSign className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Revenue</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{stats.totalRevenue.toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center">
+                            <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
+                                <Users className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Users</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalUsers}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center">
+                            <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mr-4">
+                                <FileText className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Notes</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalNotes}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Internal Revenue Chart */}
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                                <TrendingUp className="w-5 h-5 mr-2 text-indigo-500" />
+                                Revenue Trend (Last 30 Days)
+                            </h3>
+                            <div className="h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={stats.chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                        <XAxis
+                                            dataKey="date"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 12, fill: '#6B7280' }}
+                                            tickFormatter={(str) => {
+                                                const d = new Date(str);
+                                                return `${d.getDate()}/${d.getMonth() + 1}`;
+                                            }}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 12, fill: '#6B7280' }}
+                                            tickFormatter={(val) => `₹${val}`}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: '#F3F4F6' }}
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                        />
+                                        <Bar dataKey="revenue" fill="#4F46E5" radius={[4, 4, 0, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Top Selling Notes */}
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Top Selling Notes</h3>
+                            {stats.topNotes.length > 0 ? (
+                                <div className="space-y-4">
+                                    {stats.topNotes.map((note, index) => (
+                                        <div key={index} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <div className="flex items-center">
+                                                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 mr-3">
+                                                    {index + 1}
+                                                </span>
+                                                <span className="font-medium text-gray-800 dark:text-white truncate max-w-[150px] sm:max-w-xs">{note.name}</span>
+                                            </div>
+                                            <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                                {note.sales} sales
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 dark:text-gray-400 text-center py-10">No sales data yet.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Manage Notes</h2>
                 <button
                     onClick={() => {
                         setEditingNote(null);
                         setFormData({ title: '', subject: '', price: '', file: null, preview: null });
                         setShowForm(!showForm);
                     }}
-                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 shadow-sm transition-colors"
                 >
                     <Plus className="h-5 w-5 mr-1" />
                     Add Note
@@ -157,7 +278,7 @@ export default function AdminDashboard() {
             </div>
 
             {showForm && (
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 relative">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 relative border border-gray-200 dark:border-gray-700">
                     <button
                         onClick={handleCancel}
                         className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -171,15 +292,15 @@ export default function AdminDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input type="text" name="title" placeholder="Title" required
                                 value={formData.title} onChange={handleChange}
-                                className="p-2 border rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                             />
                             <input type="text" name="subject" placeholder="Subject" required
                                 value={formData.subject} onChange={handleChange}
-                                className="p-2 border rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                             />
                             <input type="number" name="price" placeholder="Price (₹)" required min="10"
                                 value={formData.price} onChange={handleChange}
-                                className="p-2 border rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -202,11 +323,11 @@ export default function AdminDashboard() {
                                 </label>
                             </div>
                         </div>
-                        <div className="flex gap-4">
-                            <button type="submit" disabled={uploading} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
+                        <div className="flex gap-4 pt-2">
+                            <button type="submit" disabled={uploading} className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-medium transition-colors shadow-sm">
                                 {uploading ? 'Processing...' : (editingNote ? 'Update Note' : 'Save Note')}
                             </button>
-                            <button type="button" onClick={handleCancel} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                            <button type="button" onClick={handleCancel} className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-6 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors">
                                 Cancel
                             </button>
                         </div>
@@ -214,29 +335,32 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+            <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 sm:rounded-xl overflow-hidden">
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                     {notes.map(note => (
-                        <li key={note.id} className="px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white">{note.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{note.subject} - ₹{note.price}</p>
+                        <li key={note.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <div className="flex items-center">
+                                <FileText className="h-10 w-10 text-gray-400 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg mr-4" />
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{note.title}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{note.subject} • ₹{note.price}</p>
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <span className={`px-2 py-1 text-xs rounded-full ${note.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
+                            <div className="flex items-center space-x-3">
+                                <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${note.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
                                     {note.is_active ? 'Active' : 'Inactive'}
                                 </span>
 
                                 <button
                                     onClick={() => handleEdit(note)}
-                                    className="p-1 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200"
+                                    className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                     title="Edit"
                                 >
                                     <Pencil className="h-5 w-5" />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(note.id)}
-                                    className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200"
+                                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                                     title="Delete"
                                 >
                                     <Trash2 className="h-5 w-5" />
@@ -244,6 +368,11 @@ export default function AdminDashboard() {
                             </div>
                         </li>
                     ))}
+                    {notes.length === 0 && (
+                        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                            No notes found. Create your first note above!
+                        </div>
+                    )}
                 </ul>
             </div>
         </div>

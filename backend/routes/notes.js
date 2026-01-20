@@ -10,10 +10,10 @@ router.get('/', async (req, res) => {
 
     let query = supabase
       .from('notes')
-      .select('*')
+      .select('*, reviews(rating)') // Fetch ratings
       .eq('is_active', true);
 
-    // Search Filter (Title or Subject)
+    // Search Filter
     if (search) {
       query = query.or(`title.ilike.%${search}%,subject.ilike.%${search}%`);
     }
@@ -26,20 +26,40 @@ router.get('/', async (req, res) => {
       query = query.lte('price', maxPrice);
     }
 
-    // Sorting
-    if (sort === 'price_asc') {
-      query = query.order('price', { ascending: true });
-    } else if (sort === 'price_desc') {
-      query = query.order('price', { ascending: false });
-    } else {
-      // Default: Newest first
-      query = query.order('created_at', { ascending: false });
-    }
-
-    const { data, error } = await query;
+    const { data: notes, error } = await query;
 
     if (error) throw error;
-    res.json(data);
+
+    // Calculate Average Rating
+    const notesWithStats = notes.map(note => {
+        const ratings = note.reviews || [];
+        const avgRating = ratings.length > 0
+            ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+            : 0;
+        
+        // Remove the raw reviews array to keep response light, unless needed
+        const { reviews, ...noteData } = note; 
+        return {
+            ...noteData,
+            average_rating: parseFloat(avgRating.toFixed(1)),
+            review_count: ratings.length
+        };
+    });
+
+    // Sorting (Client-side sorting needed for rating, or DB sorting if simple)
+    // Re-applying sort logic here since we have calculated fields, 
+    // OR keep DB sort for price/date as before.
+    let sortedNotes = notesWithStats;
+    if (sort === 'price_asc') {
+        sortedNotes.sort((a, b) => a.price - b.price);
+    } else if (sort === 'price_desc') {
+        sortedNotes.sort((a, b) => b.price - a.price);
+    } else {
+        // Default: Newest first (already sorted by DB query usually, but ensure it)
+        sortedNotes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    res.json(sortedNotes);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

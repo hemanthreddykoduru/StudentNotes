@@ -3,11 +3,12 @@ import api from '../lib/api';
 import NoteCard from '../components/NoteCard';
 import Hero3D from '../components/Hero3D';
 import { Search, Filter, X } from 'lucide-react';
-import debounce from 'lodash.debounce';
 
 export default function Home() {
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const [wishlistIds, setWishlistIds] = useState(new Set());
 
     // Filter State
     const [search, setSearch] = useState('');
@@ -16,33 +17,39 @@ export default function Home() {
     const [sort, setSort] = useState('latest');
     const [showFilters, setShowFilters] = useState(false);
 
-    // Debounced Search Function
-    // Using a ref or useCallback to ensure debounce persists across renders
-    // However, simplified approach:
-    // We will trigger fetchNotes when filters change, but we need to debounce the search specifically.
-
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            fetchNotes();
-        }, 500); // Debounce API calls by 500ms
+            fetchData();
+        }, 500);
 
         return () => clearTimeout(timeoutId);
     }, [search, minPrice, maxPrice, sort]);
 
-    const fetchNotes = async () => {
+    const fetchData = async () => {
         setLoading(true);
-        try {
-            // Build query params
-            const params = new URLSearchParams();
-            if (search) params.append('search', search);
-            if (minPrice) params.append('minPrice', minPrice);
-            if (maxPrice) params.append('maxPrice', maxPrice);
-            if (sort) params.append('sort', sort);
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (minPrice) params.append('minPrice', minPrice);
+        if (maxPrice) params.append('maxPrice', maxPrice);
+        if (sort) params.append('sort', sort);
 
-            const { data } = await api.get(`/notes?${params.toString()}`);
-            setNotes(data);
+        try {
+            const notesReq = api.get(`/notes?${params.toString()}`);
+            // Catch wishlist errors silently (e.g. 401 if not logged in)
+            const wishlistReq = api.get('/wishlist').catch(() => ({ data: [] }));
+
+            const [notesRes, wishlistRes] = await Promise.all([notesReq, wishlistReq]);
+
+            setNotes(notesRes.data);
+            setWishlistIds(new Set(wishlistRes.data.map(n => n.id)));
+
         } catch (error) {
-            console.error('Error fetching notes:', error);
+            console.error('Error fetching data:', error);
+            // Fallback: try fetching notes only if Promise.all failed for some reason
+            try {
+                const { data } = await api.get(`/notes?${params.toString()}`);
+                setNotes(data);
+            } catch (e) { console.error(e) }
         } finally {
             setLoading(false);
         }
@@ -157,7 +164,13 @@ export default function Home() {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {notes.length > 0 ? (
-                        notes.map((note) => <NoteCard key={note.id} note={note} />)
+                        notes.map((note) => (
+                            <NoteCard
+                                key={note.id}
+                                note={note}
+                                isWishlisted={wishlistIds.has(note.id)}
+                            />
+                        ))
                     ) : (
                         <div className="col-span-full text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
                             <Search className="mx-auto h-12 w-12 text-gray-400" />

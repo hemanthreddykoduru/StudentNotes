@@ -24,11 +24,14 @@ const paymentRoutes = require('./routes/payments');
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/wishlist', require('./routes/wishlist'));
 
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log('Routes loaded: /api/auth, /api/notes, /api/payments');
+    console.log('Routes loaded: /api/auth, /api/notes, /api/payments, /api/reviews');
   });
 }
 

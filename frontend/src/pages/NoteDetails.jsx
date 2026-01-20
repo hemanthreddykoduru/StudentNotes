@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { FileText, Download } from 'lucide-react';
+import ReviewsSection from '../components/ReviewsSection';
 
 export default function NoteDetails() {
     const { id } = useParams();
@@ -226,6 +227,11 @@ export default function NoteDetails() {
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* Reviews Section */}
+            <div className="mt-8 px-4 sm:px-6">
+                <ReviewsSection noteId={id} />
             </div>
 
         </div>

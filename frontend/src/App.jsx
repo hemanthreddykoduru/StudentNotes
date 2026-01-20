@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import UpdatePassword from './pages/UpdatePassword';
 import AdminDashboard from './pages/AdminDashboard';
 import MyAccount from './pages/MyAccount';
+import Wishlist from './pages/Wishlist';
 import AuthHandler from './components/AuthHandler';
 
 // Placeholders for now
@@ -40,8 +41,12 @@ function App() {
               <ProtectedRoute>
                 <AdminDashboard />
               </ProtectedRoute>
-            }
-            />
+            } />
+            <Route path="/wishlist" element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            } />
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/pricing" element={<Subscription />} />
             <Route

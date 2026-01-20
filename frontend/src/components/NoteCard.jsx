@@ -1,42 +1,68 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, ArrowRight } from 'lucide-react';
+import { FileText, ArrowRight, Star, Heart } from 'lucide-react';
+import api from '../lib/api';
 
-export default function NoteCard({ note }) {
+export default function NoteCard({ note, isWishlisted }) {
     const navigate = useNavigate();
+    const [inWishlist, setInWishlist] = useState(isWishlisted);
+
+    const toggleWishlist = async (e) => {
+        e.stopPropagation(); // Prevent card click
+        const previousState = inWishlist;
+        setInWishlist(!previousState); // Optimistic
+
+        try {
+            if (previousState) {
+                await api.delete(`/wishlist/${note.id}`);
+            } else {
+                await api.post(`/wishlist/${note.id}`);
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+            setInWishlist(previousState); // Revert
+        }
+    };
 
     return (
         <div
-            onClick={() => navigate(`/notes/${note.id}`)}
-            className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden transform hover:-translate-y-1"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100 dark:border-gray-700 relative group"
+            onClick={() => navigate(`/notes/${note.id}`)} // Re-added navigation to the whole card
         >
-            <div className="aspect-w-16 aspect-h-9 w-full h-48 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center p-4">
-                {note.preview_url?.match(/\.(jpeg|jpg|gif|png)$/i) ? (
-                    <img src={note.preview_url} alt={note.title} className="w-full h-full object-contain" />
-                ) : (
-                    <FileText className="h-16 w-16 text-gray-400 dark:text-gray-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" />
-                )}
-            </div>
+            {/* Wishlist Button */}
+            <button
+                onClick={toggleWishlist}
+                className="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 shadow-sm transition-all z-10"
+            >
+                <Heart
+                    className={`w-5 h-5 transition-colors ${inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'}`}
+                />
+            </button>
 
-            <div className="p-5">
+            <img
+                src={note.preview_url || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1000"} // Better placeholder
+                alt={note.title}
+                className="w-full h-48 object-cover"
+            />
+            <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                    <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 text-xs px-2 py-1 rounded-full font-semibold uppercase tracking-wide">
                         {note.subject}
                     </span>
-                    <span className="font-bold text-gray-900 dark:text-white">
-                        ₹{note.price}
-                    </span>
+                    <div className="flex items-center text-yellow-400">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {note.average_rating ? Number(note.average_rating).toFixed(1) : 'New'}
+                        </span>
+                        <span className="ml-1 text-xs text-gray-400">({note.review_count || 0})</span>
+                    </div>
                 </div>
-
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {note.title}
-                </h3>
-
-                <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4">
-                    High-quality study material for {note.subject}. Click to view details and purchase.
-                </p>
-
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-500 font-medium group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    View Details <ArrowRight className="ml-1 w-4 h-4" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1">{note.title}</h3>
+                <div className="flex justify-between items-center mt-4">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{note.price}</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+                        View Details →
+                    </span>
                 </div>
             </div>
         </div>

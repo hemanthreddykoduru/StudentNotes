@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useEffect, useState } from 'react';
-import { BookOpen, LogOut } from 'lucide-react';
+import { LogOut, User, Menu, X, ShoppingBag, Heart, BookOpen } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
 
@@ -63,9 +63,14 @@ export default function Navbar() {
                                     Subscription
                                 </Link>
                                 {user && (
-                                    <Link to="/my-purchases" className="text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
-                                        My Purchases
-                                    </Link>
+                                    <>
+                                        <Link to="/my-purchases" className="text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
+                                            My Purchases
+                                        </Link>
+                                        <Link to="/wishlist" className="text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
+                                            Wishlist
+                                        </Link>
+                                    </>
                                 )}
 
                                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2" aria-hidden="true" />

@@ -116,3 +116,22 @@ create policy "Admins can view all subscriptions." on subscriptions
   for select using (
     exists (select 1 from profiles where id = auth.uid() and role = 'admin')
   );
+
+-- REVIEWS TABLE
+create table reviews (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users not null,
+  note_id uuid references notes not null,
+  rating integer not null check (rating >= 1 and rating <= 5),
+  comment text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, note_id) -- One review per note per user
+);
+
+-- Turn on RLS
+alter table reviews enable row level security;
+
+-- Policies for reviews
+create policy "Reviews are viewable by everyone." on reviews
+  for select using (true);
+
