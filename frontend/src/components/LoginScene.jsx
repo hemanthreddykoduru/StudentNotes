@@ -43,7 +43,7 @@ export default function LoginScene() {
             </Float>
 
             <ContactShadows position={[0, -3, 0]} opacity={0.4} scale={10} blur={2.5} far={4} />
-            <Environment preset="night" />
+            <Environment preset="city" />
         </Canvas>
     );
 }

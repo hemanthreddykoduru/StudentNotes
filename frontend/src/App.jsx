@@ -14,35 +14,39 @@ import AuthHandler from './components/AuthHandler';
 const NoteDetailsPlaceholder = () => <div>Details Page</div>;
 const MyPurchasesPlaceholder = () => <div>My Purchases</div>;
 
+import { ThemeProvider } from './context/ThemeContext';
+
 function App() {
   return (
-    <Router>
-      <AuthHandler />
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/notes/:id" element={<NoteDetails />} />
-          <Route
-            path="/my-purchases"
-            element={
+    <ThemeProvider>
+      <Router>
+        <AuthHandler />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/notes/:id" element={<NoteDetails />} />
+            <Route
+              path="/my-purchases"
+              element={
+                <ProtectedRoute>
+                  <MyPurchases />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/admin" element={
               <ProtectedRoute>
-                <MyPurchases />
+                <AdminDashboard />
               </ProtectedRoute>
             }
-          />
-          <Route path="/admin" element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-          />
-          <Route path="/update-password" element={<UpdatePassword />} />
-          <Route path="/pricing" element={<Subscription />} />
-        </Routes>
-      </div>
-    </Router>
+            />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/pricing" element={<Subscription />} />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 

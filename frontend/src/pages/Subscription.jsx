@@ -90,13 +90,13 @@ export default function Subscription() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors duration-200">
             <div className="max-w-lg w-full space-y-8">
                 <div className="text-center">
-                    <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                    <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
                         {hasSubscription ? 'You are a Pro Member!' : 'Unlock Unlimited Knowledge'}
                     </h2>
-                    <p className="mt-4 text-lg text-gray-500">
+                    <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
                         {hasSubscription
                             ? 'Enjoy unlimited access to all premium notes on our platform.'
                             : 'Get access to every single premium note on our platform for one simple yearly price.'
@@ -104,7 +104,7 @@ export default function Subscription() {
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-indigo-100 transform transition-all hover:scale-105 duration-300">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-indigo-100 dark:border-gray-700 transform transition-all hover:scale-105 duration-300">
                     <div className={`px-6 py-8 ${hasSubscription ? 'bg-green-600' : 'bg-indigo-600'} sm:p-10 sm:pb-6`}>
                         <div className="flex justify-center">
                             <span className={`inline-flex px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase ${hasSubscription ? 'bg-green-100 text-green-600' : 'bg-indigo-100 text-indigo-600'}`}>
@@ -119,7 +119,7 @@ export default function Subscription() {
                             <span className={`ml-1 text-2xl font-medium ${hasSubscription ? 'text-green-200' : 'text-indigo-200'} self-end mb-2`}>/year</span>
                         </div>
                     </div>
-                    <div className="px-6 pt-6 pb-8 bg-gray-50 sm:p-10 sm:pt-6">
+                    <div className="px-6 pt-6 pb-8 bg-gray-50 dark:bg-gray-750 sm:p-10 sm:pt-6">
                         <ul className="space-y-4">
                             {[
                                 'Access to ALL Premium Notes',
@@ -134,7 +134,7 @@ export default function Subscription() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     </div>
-                                    <p className="ml-3 text-base text-gray-700">{feature}</p>
+                                    <p className="ml-3 text-base text-gray-700 dark:text-gray-300">{feature}</p>
                                 </li>
                             ))}
                         </ul>
