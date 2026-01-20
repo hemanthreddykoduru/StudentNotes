@@ -161,11 +161,23 @@ router.put('/:id', requireAuth, async (req, res) => {
       .eq('id', req.user.id)
       .single();
 
-    if (profileError || profile.role !== 'admin') {
+    if (profileError || !profile || profile.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied. Admins only.' });
     }
 
-    const updates = req.body;
+    // Sanitize updates - Only allow specific fields
+    const { title, subject, price, file_url, preview_url, is_active } = req.body;
+    const updates = {};
+    if (title !== undefined) updates.title = title;
+    if (subject !== undefined) updates.subject = subject;
+    if (price !== undefined) updates.price = price;
+    if (file_url !== undefined) updates.file_url = file_url;
+    if (preview_url !== undefined) updates.preview_url = preview_url;
+    if (is_active !== undefined) updates.is_active = is_active;
+
+    if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No valid fields to update' });
+    }
     
     // Update note
     const { data, error } = await supabase
@@ -177,7 +189,8 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json(data[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error in PUT /api/notes/:id:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 });
 
