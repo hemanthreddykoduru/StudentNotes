@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import NoteCard from '../components/NoteCard';
 import Hero3D from '../components/Hero3D';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, Sparkles } from 'lucide-react';
 
 export default function Home() {
+    const navigate = useNavigate();
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [wishlistIds, setWishlistIds] = useState(new Set());
+
 
     // Filter State
     const [search, setSearch] = useState('');
@@ -78,6 +81,17 @@ export default function Home() {
                     <p className="mt-3 max-w-md mx-auto text-base text-gray-500 dark:text-gray-400 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
                         Access high-quality study materials, summaries, and guides to ace your exams.
                     </p>
+
+                    {/* Hero CTA */}
+                    <div
+                        onClick={() => navigate('/pricing')}
+                        className="mt-8 flex items-center justify-center cursor-pointer group"
+                    >
+                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                            <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
+                            <span className="text-lg tracking-wide">Pay ₹1 for all notes</span>
+                        </div>
+                    </div>
                 </div>
                 <Hero3D />
             </div>
