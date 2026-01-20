@@ -8,6 +8,7 @@ import Subscription from './pages/Subscription';
 import ProtectedRoute from './components/ProtectedRoute';
 import UpdatePassword from './pages/UpdatePassword';
 import AdminDashboard from './pages/AdminDashboard';
+import MyAccount from './pages/MyAccount';
 import AuthHandler from './components/AuthHandler';
 
 // Placeholders for now
@@ -43,6 +44,14 @@ function App() {
             />
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/pricing" element={<Subscription />} />
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute>
+                  <MyAccount />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </Router>

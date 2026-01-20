@@ -5,6 +5,8 @@ create extension if not exists "uuid-ossp";
 create table profiles (
   id uuid references auth.users not null primary key,
   email text not null,
+  full_name text,
+  mobile_number text,
   role text not null check (role in ('admin', 'user')) default 'user',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

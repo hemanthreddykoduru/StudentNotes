@@ -65,7 +65,7 @@ export default function Navbar() {
                                     Home
                                 </Link>
                                 <Link to="/pricing" className="text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
-                                    Pricing
+                                    Subscription
                                 </Link>
                                 {user && (
                                     <Link to="/my-purchases" className="text-gray-900 dark:text-gray-100 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
@@ -77,9 +77,9 @@ export default function Navbar() {
 
                                 <div className="flex items-center gap-3">
                                     <div className="flex flex-col items-end">
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 hidden md:block max-w-[150px] truncate">
-                                            {user.email}
-                                        </span>
+                                        <Link to="/account" className="text-sm font-medium text-gray-700 dark:text-gray-200 hidden md:block max-w-[150px] truncate hover:text-indigo-600 dark:hover:text-indigo-400">
+                                            My Account
+                                        </Link>
                                         <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{role}</span>
                                     </div>
                                     <button

@@ -6,11 +6,37 @@ const requireAuth = require('../middleware/auth');
 // GET /api/notes - List all active notes
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { search, minPrice, maxPrice, sort } = req.query;
+
+    let query = supabase
       .from('notes')
       .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .eq('is_active', true);
+
+    // Search Filter (Title or Subject)
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,subject.ilike.%${search}%`);
+    }
+
+    // Price Filter
+    if (minPrice) {
+      query = query.gte('price', minPrice);
+    }
+    if (maxPrice) {
+      query = query.lte('price', maxPrice);
+    }
+
+    // Sorting
+    if (sort === 'price_asc') {
+      query = query.order('price', { ascending: true });
+    } else if (sort === 'price_desc') {
+      query = query.order('price', { ascending: false });
+    } else {
+      // Default: Newest first
+      query = query.order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     res.json(data);
