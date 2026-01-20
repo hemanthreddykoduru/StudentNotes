@@ -120,7 +120,8 @@ export default function AdminDashboard() {
 
         } catch (error) {
             console.error('Error saving note:', error);
-            alert(`Error: ${error.message}`);
+            const message = error.response?.data?.error || error.message;
+            alert(`Error: ${message}`);
         } finally {
             setUploading(false);
         }
