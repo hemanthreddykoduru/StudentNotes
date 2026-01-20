@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, ArrowRight, Star, Heart } from 'lucide-react';
+import { FileText, ArrowRight, Star, Heart, Sparkles } from 'lucide-react';
 import api from '../lib/api';
 
-export default function NoteCard({ note, isWishlisted }) {
+export default function NoteCard({ note, isWishlisted, isSubscribed }) {
     const navigate = useNavigate();
     const [inWishlist, setInWishlist] = useState(isWishlisted);
 
@@ -59,10 +59,36 @@ export default function NoteCard({ note, isWishlisted }) {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1">{note.title}</h3>
                 <div className="flex justify-between items-center mt-4">
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{note.price}</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
-                        View Details →
-                    </span>
+                    {isSubscribed ? (
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                            You have full access to this note
+                        </span>
+                    ) : (
+                        <div className="flex flex-col items-start gap-1">
+                            <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{note.price}</span>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate('/pricing');
+                                }}
+                                className="group/btn flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 pl-2 pr-3 py-1 rounded-full hover:shadow-md hover:scale-105 transition-all duration-300"
+                            >
+                                <Sparkles className="w-3 h-3 text-yellow-200 animate-pulse" />
+                                <span>or pay ₹1 for all notes</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {!isSubscribed && (
+                        <span className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+                            View Details →
+                        </span>
+                    )}
+                    {isSubscribed && (
+                        <span className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+                            View →
+                        </span>
+                    )}
                 </div>
             </div>
         </div>

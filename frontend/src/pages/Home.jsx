@@ -17,6 +17,8 @@ export default function Home() {
     const [sort, setSort] = useState('latest');
     const [showFilters, setShowFilters] = useState(false);
 
+    const [isSubscribed, setIsSubscribed] = useState(false);
+
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             fetchData();
@@ -37,15 +39,18 @@ export default function Home() {
             const notesReq = api.get(`/notes?${params.toString()}`);
             // Catch wishlist errors silently (e.g. 401 if not logged in)
             const wishlistReq = api.get('/wishlist').catch(() => ({ data: [] }));
+            // Catch subscription errors silently
+            const subReq = api.get('/payments/subscription-status').catch(() => ({ data: { isSubscribed: false } }));
 
-            const [notesRes, wishlistRes] = await Promise.all([notesReq, wishlistReq]);
+            const [notesRes, wishlistRes, subRes] = await Promise.all([notesReq, wishlistReq, subReq]);
 
             setNotes(notesRes.data);
             setWishlistIds(new Set(wishlistRes.data.map(n => n.id)));
+            setIsSubscribed(subRes.data.isSubscribed);
 
         } catch (error) {
             console.error('Error fetching data:', error);
-            // Fallback: try fetching notes only if Promise.all failed for some reason
+            // Fallback: try fetching notes only
             try {
                 const { data } = await api.get(`/notes?${params.toString()}`);
                 setNotes(data);
@@ -169,6 +174,7 @@ export default function Home() {
                                 key={note.id}
                                 note={note}
                                 isWishlisted={wishlistIds.has(note.id)}
+                                isSubscribed={isSubscribed}
                             />
                         ))
                     ) : (

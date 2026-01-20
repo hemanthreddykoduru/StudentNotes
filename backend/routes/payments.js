@@ -150,4 +150,28 @@ router.post('/verify-subscription', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/payments/subscription-status
+router.get('/subscription-status', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .eq('status', 'active')
+      .gt('end_date', new Date().toISOString())
+      .order('end_date', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
+      throw error;
+    }
+
+    res.json({ isSubscribed: !!data });
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
