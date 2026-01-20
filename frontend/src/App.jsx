@@ -8,6 +8,7 @@ import Subscription from './pages/Subscription';
 import ProtectedRoute from './components/ProtectedRoute';
 import UpdatePassword from './pages/UpdatePassword';
 import AdminDashboard from './pages/AdminDashboard';
+import AuthHandler from './components/AuthHandler';
 
 // Placeholders for now
 const NoteDetailsPlaceholder = () => <div>Details Page</div>;
@@ -16,6 +17,7 @@ const MyPurchasesPlaceholder = () => <div>My Purchases</div>;
 function App() {
   return (
     <Router>
+      <AuthHandler />
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <Routes>
