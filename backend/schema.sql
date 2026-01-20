@@ -29,7 +29,7 @@ create table notes (
   id uuid default uuid_generate_v4() primary key,
   title text not null,
   subject text not null,
-  price numeric not null check (price >= 10),
+  price numeric not null check (price >= 1),
   file_url text not null, -- Secured PDF URL
   preview_url text not null, -- Public preview Image/PDF URL
   is_active boolean default true,
