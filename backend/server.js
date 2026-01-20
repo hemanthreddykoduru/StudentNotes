@@ -28,6 +28,7 @@ app.use('/api/payments', paymentRoutes);
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Routes loaded: /api/auth, /api/notes, /api/payments');
   });
 }
 

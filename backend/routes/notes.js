@@ -19,18 +19,56 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/notes/:id - Get note details
+// GET /api/notes/:id - Get note details (Secured)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase
+    const userId = req.headers['x-user-id']; // We will pass User ID from frontend if logged in
+
+    // 1. Fetch Note Details
+    const { data: note, error } = await supabase
       .from('notes')
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    res.json(data);
+
+    // If no user, return basic info only (no file_url)
+    if (!userId) {
+        const { file_url, ...safeNote } = note;
+        return res.json({ ...safeNote, hasAccess: false });
+    }
+
+    // 2. Check for Active Subscription
+    const { data: subscriptions } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .gt('end_date', new Date().toISOString())
+        .limit(1);
+
+    if (subscriptions && subscriptions.length > 0) {
+         return res.json({ ...note, file_url: note.file_url, hasAccess: true });
+    }
+
+    // 3. Check for Individual Purchase
+    const { data: purchases } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('note_id', id)
+        .limit(1);
+
+    if (purchases && purchases.length > 0) {
+        return res.json({ ...note, file_url: note.file_url, hasAccess: true });
+    }
+
+    // 4. No Access - Strip file_url
+    const { file_url, ...safeNote } = note;
+    return res.json({ ...safeNote, hasAccess: false });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

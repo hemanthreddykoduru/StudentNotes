@@ -14,46 +14,21 @@ export default function NoteDetails() {
 
     useEffect(() => {
         fetchNoteDetails();
-        checkPurchaseStatus();
     }, [id]);
 
     const fetchNoteDetails = async () => {
         try {
             const { data } = await api.get(`/notes/${id}`);
             setNote(data);
+            if (data.hasAccess) {
+                setPurchased(true);
+            }
         } catch (error) {
             console.error('Error fetching note:', error);
         } finally {
             setLoading(false);
         }
     };
-
-    const checkPurchaseStatus = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session || !note) return;
-
-        try {
-            const { data, error } = await supabase
-                .from('purchases')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .eq('note_id', note.id)
-                .single(); // Assuming one purchase per note per user
-
-            if (data && !error) {
-                setPurchased(true);
-            }
-        } catch (error) {
-            console.error('Error checking purchase status:', error);
-        }
-    };
-
-    // Add effect to check purchase status whenever note changes
-    useEffect(() => {
-        if (note) {
-            checkPurchaseStatus();
-        }
-    }, [note]);
 
     const handleBuy = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -63,7 +38,7 @@ export default function NoteDetails() {
         }
 
         if (purchased) {
-            alert('You have already purchased this note!');
+            alert('You already have access to this note!');
             return;
         }
 
@@ -90,8 +65,8 @@ export default function NoteDetails() {
                             noteId: note.id
                         });
                         alert('Payment Successful!');
-                        setPurchased(true);
-                        // Redirect or just update UI
+                        setPurchased(true); // Grant access immediately
+                        fetchNoteDetails(); // Refresh to get PDF URL
                     } catch (verifyError) {
                         console.error(verifyError);
                         alert('Payment Verification Failed');
@@ -127,7 +102,7 @@ export default function NoteDetails() {
                     <p className="mt-1 max-w-2xl text-sm text-gray-500">{note.subject}</p>
                 </div>
                 <div className="border-t border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
                         <div className="h-96 bg-gray-100 flex items-center justify-center border rounded overflow-hidden relative">
                             {note.preview_url ? (
                                 note.preview_url.match(/\.(jpeg|jpg|gif|png)$/i) ? (
@@ -148,19 +123,21 @@ export default function NoteDetails() {
                                 <FileText className="h-24 w-24 text-gray-400" />
                             )}
                         </div>
-                        <div className="flex flex-col justify-between">
+
+                        <div className="flex flex-col justify-between space-y-6">
                             <div>
-                                <p className="text-gray-700 mb-4">
+                                <h4 className="text-lg font-bold text-gray-900 mb-2">Description</h4>
+                                <p className="text-gray-700">
                                     Get full access to this premium note used by top students.
                                     Includes detailed explanations, diagrams, and summary.
                                 </p>
-                                <h4 className="text-3xl font-bold text-gray-900 mb-4">₹{note.price}</h4>
                             </div>
 
-                            {purchased ? ( // Show Full Screen Button if already bought
-                                <div className="space-y-3">
-                                    <div className="p-3 bg-green-100 text-green-800 rounded-md text-center font-medium">
-                                        ✅ You own this note
+                            {purchased ? ( // Show Full Screen Button if already bought/subscribed
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg text-center font-medium flex items-center justify-center">
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        You have full access to this note
                                     </div>
                                     <button
                                         onClick={() => {
@@ -178,19 +155,67 @@ export default function NoteDetails() {
                                     </button>
                                 </div>
                             ) : (
-                                <button
-                                    onClick={handleBuy}
-                                    disabled={processing}
-                                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                                >
-                                    {processing ? 'Processing...' : 'Buy Now'}
-                                </button>
+                                <div className="space-y-4">
+
+                                    {/* Subscription Option (Best Value) */}
+                                    <div className="border-2 border-indigo-500 rounded-xl p-4 bg-indigo-50 relative overflow-hidden cursor-pointer hover:bg-indigo-100 transition-colors" onClick={() => navigate('/pricing')}>
+                                        <div className="absolute top-0 right-0 bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                                            BEST VALUE
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <h5 className="font-bold text-gray-900">Unlock All Notes</h5>
+                                                <p className="text-sm text-indigo-700">Get unlimited access to everything</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="block text-2xl font-bold text-indigo-900">₹1</span>
+                                                <span className="text-xs text-indigo-600">/ year</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <button className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+                                                Upgrade to Pro
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* OR Divider */}
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                            <div className="w-full border-t border-gray-300"></div>
+                                        </div>
+                                        <div className="relative flex justify-center">
+                                            <span className="px-2 bg-white text-sm text-gray-500">or buy individually</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Single Purchase Option */}
+                                    <div className="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <div>
+                                                <h5 className="font-medium text-gray-900">Single Note Access</h5>
+                                                <p className="text-sm text-gray-500">Lifetime access to this note only</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="block text-xl font-bold text-gray-900">₹{note.price}</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleBuy}
+                                            disabled={processing}
+                                            className="w-full py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-md shadow-sm transition-colors"
+                                        >
+                                            {processing ? 'Processing...' : 'Buy This Note Only'}
+                                        </button>
+                                    </div>
+
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
                 {/* Hidden Wrapper for Full Screen logic */}
-                {purchased && (
+                {purchased && note.file_url && (
                     <div className="h-0 w-0 overflow-hidden">
                         <div id="pdf-container" className="bg-gray-100 flex items-center justify-center h-screen w-screen">
                             <iframe

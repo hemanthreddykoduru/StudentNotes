@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import NoteDetails from './pages/NoteDetails';
 import MyPurchases from './pages/MyPurchases';
+import Subscription from './pages/Subscription';
 import ProtectedRoute from './components/ProtectedRoute';
 import UpdatePassword from './pages/UpdatePassword';
 import AdminDashboard from './pages/AdminDashboard';
@@ -36,6 +37,7 @@ function App() {
           }
           />
           <Route path="/update-password" element={<UpdatePassword />} />
+          <Route path="/pricing" element={<Subscription />} />
         </Routes>
       </div>
     </Router>

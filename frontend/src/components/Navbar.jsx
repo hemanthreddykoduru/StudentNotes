@@ -51,10 +51,17 @@ export default function Navbar() {
                                         Admin
                                     </Link>
                                 )}
-                                <Link to="/my-purchases" className="text-gray-600 hover:text-indigo-600 flex items-center px-3 py-2 rounded-md text-sm font-medium">
-                                    <ShoppingBag className="h-4 w-4 mr-2" />
-                                    My Purchases
+                                <Link to="/" className="text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600">
+                                    Home
                                 </Link>
+                                <Link to="/pricing" className="text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600">
+                                    Pricing
+                                </Link>
+                                {user && (
+                                    <Link to="/my-purchases" className="text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:text-indigo-600">
+                                        My Purchases
+                                    </Link>
+                                )}
 
                                 <div className="h-6 w-px bg-gray-200 mx-2" aria-hidden="true" />
 
