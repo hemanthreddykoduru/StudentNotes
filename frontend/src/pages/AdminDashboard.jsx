@@ -298,7 +298,7 @@ export default function AdminDashboard() {
                                 value={formData.subject} onChange={handleChange}
                                 className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                             />
-                            <input type="number" name="price" placeholder="Price (₹)" required min="10"
+                            <input type="number" name="price" placeholder="Price (₹)" required min="1"
                                 value={formData.price} onChange={handleChange}
                                 className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                             />
