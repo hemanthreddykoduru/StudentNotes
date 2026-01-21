@@ -4,6 +4,9 @@ import api from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { FileText, Download } from 'lucide-react';
 import ReviewsSection from '../components/ReviewsSection';
+import Breadcrumbs from '../components/Breadcrumbs';
+import SocialShare from '../components/SocialShare';
+import RelatedNotes from '../components/RelatedNotes';
 
 export default function NoteDetails() {
     const { id } = useParams();
@@ -15,10 +18,12 @@ export default function NoteDetails() {
 
     useEffect(() => {
         fetchNoteDetails();
+        window.scrollTo(0, 0); // Scroll to top when note ID changes
     }, [id]);
 
     const fetchNoteDetails = async () => {
         try {
+            setLoading(true); // Reset loading when id changes
             const { data } = await api.get(`/notes/${id}`);
             setNote(data);
             if (data.hasAccess) {
@@ -95,12 +100,24 @@ export default function NoteDetails() {
     if (loading) return <div>Loading...</div>;
     if (!note) return <div>Note not found</div>;
 
+    const breadcrumbItems = [
+        { label: note.subject, link: `/?search=${encodeURIComponent(note.subject)}` },
+        { label: note.title }
+    ];
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-colors duration-200">
+            {/* Breadcrumbs */}
+            <Breadcrumbs items={breadcrumbItems} />
+
             <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                    <h3 className="text-2xl leading-6 font-medium text-gray-900 dark:text-white">{note.title}</h3>
-                    <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{note.subject}</p>
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-start flex-wrap gap-4">
+                    <div>
+                        <h3 className="text-2xl leading-6 font-medium text-gray-900 dark:text-white">{note.title}</h3>
+                        <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{note.subject}</p>
+                    </div>
+                    {/* Social Share */}
+                    <SocialShare title={note.title} url={window.location.href} />
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
@@ -228,6 +245,9 @@ export default function NoteDetails() {
                     </div>
                 )}
             </div>
+
+            {/* Related Notes Section */}
+            <RelatedNotes currentNoteId={id} subject={note.subject} />
 
             {/* Reviews Section */}
             <div className="mt-8 px-4 sm:px-6">
