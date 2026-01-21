@@ -263,7 +263,7 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Manage Notes</h2>
                 <button
                     onClick={() => {
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
                         setFormData({ title: '', subject: '', price: '', file: null, preview: null });
                         setShowForm(!showForm);
                     }}
-                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 shadow-sm transition-colors"
+                    className="w-full sm:w-auto flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 shadow-sm transition-colors"
                 >
                     <Plus className="h-5 w-5 mr-1" />
                     Add Note
@@ -339,33 +339,35 @@ export default function AdminDashboard() {
             <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 sm:rounded-xl overflow-hidden">
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                     {notes.map(note => (
-                        <li key={note.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <li key={note.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                             <div className="flex items-center">
-                                <FileText className="h-10 w-10 text-gray-400 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg mr-4" />
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{note.title}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">{note.subject} • ₹{note.price}</p>
+                                <FileText className="h-10 w-10 text-gray-400 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg mr-4 shrink-0" />
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{note.title}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{note.subject} • ₹{note.price}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-3 mt-2 sm:mt-0">
                                 <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${note.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
                                     {note.is_active ? 'Active' : 'Inactive'}
                                 </span>
 
-                                <button
-                                    onClick={() => handleEdit(note)}
-                                    className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                    title="Edit"
-                                >
-                                    <Pencil className="h-5 w-5" />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(note.id)}
-                                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                                    title="Delete"
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </button>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => handleEdit(note)}
+                                        className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                        title="Edit"
+                                    >
+                                        <Pencil className="h-5 w-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(note.id)}
+                                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                        title="Delete"
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </div>
                             </div>
                         </li>
                     ))}

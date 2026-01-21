@@ -56,7 +56,7 @@ export default function MyPurchases() {
                     {purchases.length > 0 ? (
                         purchases.map((purchase) => (
                             <li key={purchase.id}>
-                                <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
+                                <div className="px-4 py-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-lg leading-6 font-medium text-indigo-600">
                                             {purchase.notes.title}
