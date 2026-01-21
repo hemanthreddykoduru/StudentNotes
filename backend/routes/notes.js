@@ -95,6 +95,18 @@ router.get('/:id', async (req, res) => {
         .gt('end_date', new Date().toISOString())
         .limit(1);
 
+    // 3. Check for Individual Purchase (if no subscription)
+    let purchases = [];
+    if (!subscriptions || subscriptions.length === 0) {
+        const { data: purchaseData } = await supabase
+            .from('purchases')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('note_id', id)
+            .limit(1);
+        purchases = purchaseData || [];
+    }
+
     const hasAccess = (subscriptions && subscriptions.length > 0) || (purchases && purchases.length > 0);
 
     if (hasAccess) {
