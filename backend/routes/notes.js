@@ -95,20 +95,33 @@ router.get('/:id', async (req, res) => {
         .gt('end_date', new Date().toISOString())
         .limit(1);
 
-    if (subscriptions && subscriptions.length > 0) {
-         return res.json({ ...note, file_url: note.file_url, hasAccess: true });
-    }
+    const hasAccess = (subscriptions && subscriptions.length > 0) || (purchases && purchases.length > 0);
 
-    // 3. Check for Individual Purchase
-    const { data: purchases } = await supabase
-        .from('purchases')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('note_id', id)
-        .limit(1);
+    if (hasAccess) {
+        // Generate Signed URL
+        let signedUrl = note.file_url;
+        try {
+            // Extract path from public URL if possible, or assume file_url IS the path if changed in future
+            // Current format: https://[project].supabase.co/storage/v1/object/public/notes/[filename]
+            const urlObj = new URL(note.file_url);
+            const pathParts = urlObj.pathname.split('/notes/'); // Split by bucket name
+            if (pathParts.length > 1) {
+                const filePath = pathParts[1];
+                const { data: signedData, error: signError } = await supabase
+                    .storage
+                    .from('notes')
+                    .createSignedUrl(filePath, 60); // Valid for 60 seconds
 
-    if (purchases && purchases.length > 0) {
-        return res.json({ ...note, file_url: note.file_url, hasAccess: true });
+                if (!signError && signedData) {
+                    signedUrl = signedData.signedUrl;
+                }
+            }
+        } catch (e) {
+            console.error('Error generating signed URL:', e);
+            // Fallback to original URL if parsing fails (for backward compatibility)
+        }
+        
+        return res.json({ ...note, file_url: signedUrl, hasAccess: true });
     }
 
     // 4. No Access - Strip file_url
