@@ -86,18 +86,32 @@ router.get('/:id', async (req, res) => {
         return res.json({ ...safeNote, hasAccess: false });
     }
 
-    // 2. Check for Active Subscription
-    const { data: subscriptions } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .gt('end_date', new Date().toISOString())
-        .limit(1);
+    // 2. Check for Admin Role
+    let role = 'user';
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+    
+    if (profile) role = profile.role;
 
-    // 3. Check for Individual Purchase (if no subscription)
+    // 3. Check for Active Subscription (if not admin)
+    let subscriptions = [];
+    if (role !== 'admin') {
+        const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('status', 'active')
+            .gt('end_date', new Date().toISOString())
+            .limit(1);
+        subscriptions = subData || [];
+    }
+
+    // 4. Check for Individual Purchase (if not admin and no subscription)
     let purchases = [];
-    if (!subscriptions || subscriptions.length === 0) {
+    if (role !== 'admin' && (!subscriptions || subscriptions.length === 0)) {
         const { data: purchaseData } = await supabase
             .from('purchases')
             .select('*')
@@ -107,7 +121,7 @@ router.get('/:id', async (req, res) => {
         purchases = purchaseData || [];
     }
 
-    const hasAccess = (subscriptions && subscriptions.length > 0) || (purchases && purchases.length > 0);
+    const hasAccess = role === 'admin' || (subscriptions && subscriptions.length > 0) || (purchases && purchases.length > 0);
 
     if (hasAccess) {
         // Generate Signed URL
