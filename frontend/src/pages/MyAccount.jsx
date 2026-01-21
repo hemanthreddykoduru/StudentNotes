@@ -146,7 +146,7 @@ export default function MyAccount() {
                                     id="mobile_number"
                                     value={profile.mobile_number}
                                     onChange={handleChange}
-                                    placeholder="+91 98765 43210"
+                                    placeholder="9966659900"
                                     className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 />
                             </div>

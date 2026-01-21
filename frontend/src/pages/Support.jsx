@@ -37,7 +37,7 @@ const Support = () => {
         <div className="space-y-8">
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">Get in Touch</h2>
-            
+
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
@@ -46,8 +46,8 @@ const Support = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white mb-1">Our Office</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    123 Innovation Drive<br />
-                    Tech Hub City, TC 560001<br />
+                    Gitam University<br />
+                    Bengaluru<br />
                     India
                   </p>
                 </div>
@@ -59,7 +59,7 @@ const Support = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white mb-1">Phone Support</h3>
-                  <p className="text-gray-600 dark:text-gray-300">+91 98765 43210</p>
+                  <p className="text-gray-600 dark:text-gray-300">9966659900</p>
                   <p className="text-sm text-gray-500 mt-1">Mon-Fri from 9am to 6pm IST</p>
                 </div>
               </div>
@@ -70,8 +70,7 @@ const Support = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white mb-1">Email Us</h3>
-                  <p className="text-gray-600 dark:text-gray-300">support@studentnotes.com</p>
-                  <p className="text-gray-600 dark:text-gray-300">info@studentnotes.com</p>
+                  <p className="text-gray-600 dark:text-gray-300">help-contact@quickxerox.app</p>
                 </div>
               </div>
             </div>
