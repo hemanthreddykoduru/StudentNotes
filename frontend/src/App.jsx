@@ -10,6 +10,10 @@ import UpdatePassword from './pages/UpdatePassword';
 import AdminDashboard from './pages/AdminDashboard';
 import MyAccount from './pages/MyAccount';
 import Wishlist from './pages/Wishlist';
+import Support from './pages/Support';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CancellationRefund from './pages/CancellationRefund';
 import AuthHandler from './components/AuthHandler';
 
 // Placeholders for now
@@ -57,6 +61,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Stripe Verification Pages */}
+            <Route path="/support" element={<Support />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/cancellation-refund" element={<CancellationRefund />} />
           </Routes>
         </div>
       </Router>
