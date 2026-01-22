@@ -263,21 +263,34 @@ router.post('/webhook', express.json({ type: 'application/json' }), async (req, 
 // GET /api/payments/subscription-status
 router.get('/subscription-status', requireAuth, async (req, res) => {
   try {
-    const { data, error } = await supabase
+    // 1. Check for Active Subscription
+    const { data: subData } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', req.user.id)
       .eq('status', 'active')
       .gt('end_date', new Date().toISOString())
-      .order('end_date', { ascending: false })
       .limit(1)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
-      throw error;
+    if (subData) {
+        return res.json({ isSubscribed: true });
     }
 
-    res.json({ isSubscribed: !!data });
+    // 2. Check if Admin (Fallback)
+    // Admins should have free access to everything
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', req.user.id)
+        .single();
+    
+    if (profile && profile.role === 'admin') {
+        return res.json({ isSubscribed: true, isAdmin: true });
+    }
+
+    res.json({ isSubscribed: false });
+
   } catch (error) {
     console.error('Error checking subscription:', error);
     res.status(500).json({ error: error.message });
