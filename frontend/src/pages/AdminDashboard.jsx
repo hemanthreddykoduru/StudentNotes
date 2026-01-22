@@ -16,6 +16,7 @@ export default function AdminDashboard() {
         title: '',
         subject: '',
         price: '',
+        description: '', // Add description to initial state
         file: null,
         preview: null,
     });
@@ -100,7 +101,9 @@ export default function AdminDashboard() {
             const noteData = {
                 title: formData.title,
                 subject: formData.subject,
+                subject: formData.subject,
                 price: formData.price,
+                description: formData.description, // Include description in payload
                 file_url: fileUrl,
                 preview_url: previewUrl
             };
@@ -115,7 +118,7 @@ export default function AdminDashboard() {
 
             setShowForm(false);
             setEditingNote(null);
-            setFormData({ title: '', subject: '', price: '', file: null, preview: null });
+            setFormData({ title: '', subject: '', price: '', description: '', file: null, preview: null });
             fetchData(); // Refresh everything including stats
 
         } catch (error) {
@@ -133,6 +136,7 @@ export default function AdminDashboard() {
             title: note.title,
             subject: note.subject,
             price: note.price,
+            description: note.description || '', // Pre-fill description
             file: null, // Don't pre-fill file inputs
             preview: null
         });
@@ -156,7 +160,7 @@ export default function AdminDashboard() {
     const handleCancel = () => {
         setShowForm(false);
         setEditingNote(null);
-        setFormData({ title: '', subject: '', price: '', file: null, preview: null });
+        setFormData({ title: '', subject: '', price: '', description: '', file: null, preview: null });
     };
 
     if (loading) return <div className="p-8 dark:text-gray-300">Loading...</div>;
@@ -268,7 +272,7 @@ export default function AdminDashboard() {
                 <button
                     onClick={() => {
                         setEditingNote(null);
-                        setFormData({ title: '', subject: '', price: '', file: null, preview: null });
+                        setFormData({ title: '', subject: '', price: '', description: '', file: null, preview: null });
                         setShowForm(!showForm);
                     }}
                     className="w-full sm:w-auto flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 shadow-sm transition-colors"
@@ -303,6 +307,17 @@ export default function AdminDashboard() {
                                 value={formData.price} onChange={handleChange}
                                 className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                             />
+                        </div>
+                        {/* Description Field */}
+                        <div>
+                            <textarea
+                                name="description"
+                                placeholder="Note Description (Detailed explanation, what's included, etc.)"
+                                rows="4"
+                                value={formData.description}
+                                onChange={handleChange}
+                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                            ></textarea>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>

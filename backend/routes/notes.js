@@ -179,12 +179,12 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Access denied. Admins only.' });
     }
 
-    const { title, subject, price, file_url, preview_url } = req.body;
+    const { title, subject, price, file_url, preview_url, description } = req.body;
     
     // Insert note
     const { data, error } = await supabase
       .from('notes')
-      .insert([{ title, subject, price, file_url, preview_url }])
+      .insert([{ title, subject, price, file_url, preview_url, description }])
       .select();
 
     if (error) throw error;
@@ -211,8 +211,7 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Access denied. Admins only.' });
     }
 
-    // Sanitize updates - Only allow specific fields
-    const { title, subject, price, file_url, preview_url, is_active } = req.body;
+    const { title, subject, price, file_url, preview_url, is_active, description } = req.body;
     const updates = {};
     if (title !== undefined) updates.title = title;
     if (subject !== undefined) updates.subject = subject;
@@ -220,6 +219,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     if (file_url !== undefined) updates.file_url = file_url;
     if (preview_url !== undefined) updates.preview_url = preview_url;
     if (is_active !== undefined) updates.is_active = is_active;
+    if (description !== undefined) updates.description = description;
 
     if (Object.keys(updates).length === 0) {
         return res.status(400).json({ error: 'No valid fields to update' });

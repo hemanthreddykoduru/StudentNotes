@@ -145,9 +145,8 @@ export default function NoteDetails() {
                         <div className="flex flex-col justify-between space-y-6">
                             <div>
                                 <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Description</h4>
-                                <p className="text-gray-700 dark:text-gray-300">
-                                    Get full access to this premium note used by top students.
-                                    Includes detailed explanations, diagrams, and summary.
+                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                                    {note.description || "No description available for this note."}
                                 </p>
                             </div>
 
