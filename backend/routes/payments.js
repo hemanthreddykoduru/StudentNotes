@@ -176,6 +176,90 @@ router.post('/verify-subscription', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/payments/webhook
+// This endpoint is called by Razorpay when payment is successful
+router.post('/webhook', express.json({ type: 'application/json' }), async (req, res) => {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET; // Fallback for easier setup
+
+  const shasum = crypto.createHmac('sha256', secret);
+  shasum.update(JSON.stringify(req.body));
+  const digest = shasum.digest('hex');
+
+  // Verify Signature
+  if (digest !== req.headers['x-razorpay-signature']) {
+    return res.status(400).json({ error: 'Invalid signature' });
+  }
+
+  const event = req.body;
+
+  try {
+    if (event.event === 'order.paid') {
+      const { payload } = event;
+      const payment = payload.payment.entity;
+      const order = payload.order.entity;
+      
+      const { notes, id: orderId, amount } = order;
+      const { id: paymentId } = payment;
+      const userId = notes.userId;
+
+      // Type 1: Subscription Payment
+      if (notes.type === 'subscription') {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setFullYear(endDate.getFullYear() + 1);
+
+        // Update the PENDING subscription to ACTIVE
+        const { error } = await supabase
+          .from('subscriptions')
+          .update({
+            status: 'active',
+            payment_id: paymentId,
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            amount: amount / 100 // Convert paisa to rupees
+          })
+          .eq('order_id', orderId);
+
+        if (error) throw error;
+        console.log(`Webhook: Subscription verified for order ${orderId}`);
+      } 
+      
+      // Type 2: Individual Note Purchase
+      else if (notes.noteId) {
+        const noteId = notes.noteId;
+
+        // Check if purchase already exists (idempotency)
+        const { data: existing } = await supabase
+            .from('purchases')
+            .select('id')
+            .eq('order_id', orderId)
+            .single();
+
+        if (!existing) {
+            const { error } = await supabase
+            .from('purchases')
+            .insert([{
+                user_id: userId,
+                note_id: noteId,
+                payment_id: paymentId,
+                order_id: orderId,
+                amount: amount / 100,
+                status: 'completed'
+            }]);
+            
+            if (error) throw error;
+            console.log(`Webhook: Note purchase verified for order ${orderId}`);
+        }
+      }
+    }
+
+    res.json({ status: 'ok' });
+  } catch (error) {
+    console.error('Webhook Error:', error);
+    res.status(500).json({ error: 'Webhook processing failed' });
+  }
+});
+
 // GET /api/payments/subscription-status
 router.get('/subscription-status', requireAuth, async (req, res) => {
   try {
