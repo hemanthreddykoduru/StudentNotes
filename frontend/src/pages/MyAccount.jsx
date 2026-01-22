@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, Phone, Mail, Save, Loader } from 'lucide-react';
+import Toast from '../components/Toast';
 
 export default function MyAccount() {
     const [loading, setLoading] = useState(true);
@@ -10,6 +11,7 @@ export default function MyAccount() {
         full_name: '',
         mobile_number: '',
     });
+    const [toast, setToast] = useState(null);
 
     useEffect(() => {
         const getProfile = async () => {
@@ -65,10 +67,10 @@ export default function MyAccount() {
                 });
 
             if (error) throw error;
-            alert('Profile updated successfully!');
+            setToast({ message: 'Profile updated successfully!', type: 'success' });
         } catch (error) {
             console.error('Error updating profile:', error.message);
-            alert(`Error updating profile: ${error.message}`);
+            setToast({ message: `Error updating profile: ${error.message}`, type: 'error' });
         } finally {
             setSaving(false);
         }
@@ -84,6 +86,7 @@ export default function MyAccount() {
 
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">My Account</h1>
 
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
