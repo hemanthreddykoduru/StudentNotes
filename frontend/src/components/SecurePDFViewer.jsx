@@ -6,9 +6,7 @@ import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 // Use unpkg CDN for the worker to avoid Vite build issues with the local file
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-// Import default styles for react-pdf
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
+// configured below
 
 export default function SecurePDFViewer({ fileUrl, onClose, title }) {
     const [numPages, setNumPages] = useState(null);
