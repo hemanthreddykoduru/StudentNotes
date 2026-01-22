@@ -95,6 +95,32 @@ router.post('/create-subscription-order', requireAuth, async (req, res) => {
     };
 
     const order = await razorpay.orders.create(options);
+    
+    // Create Pending Subscription immediately for audit trail
+    // This ensures we have a record even if client verification fails
+    const startDate = new Date();
+    const { error } = await supabase
+        .from('subscriptions')
+        .insert([{
+            user_id: req.user.id,
+            plan_type: 'pro',
+            start_date: startDate.toISOString(),
+            end_date: startDate.toISOString(), // Placeholder until active
+            payment_id: 'pending',
+            order_id: order.id,
+            amount: 1.00,
+            status: 'pending' // << New Status
+        }]);
+
+    if (error) {
+        console.error('Error creating pending subscription:', error);
+        // We still return the order so the user can pay, but log the error.
+        // Ideally we might want to fail here, but let's allow payment to proceed
+        // and rely on webhook or manual check if DB fails (rare).
+        // Check if strict consistency is needed? Yes, let's fail if we can't record it.
+        return res.status(500).json({ error: 'Failed to initialize subscription record' });
+    }
+
     res.json(order);
   } catch (error) {
     console.error(error);
@@ -118,25 +144,25 @@ router.post('/verify-subscription', requireAuth, async (req, res) => {
       .digest('hex');
 
     if (expectedSignature === razorpay_signature) {
-      // Payment successful, create subscription
+      // Payment successful, ACTIVATE subscription
      
       // Calculate Expiry (1 Year from now)
       const startDate = new Date();
       const endDate = new Date();
       endDate.setFullYear(endDate.getFullYear() + 1);
 
+      // UPDATE the existing pending record instead of inserting new
       const { data, error } = await supabase
         .from('subscriptions')
-        .insert([{
-          user_id: req.user.id,
-          plan_type: 'pro',
+        .update({
+          status: 'active',
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           payment_id: razorpay_payment_id,
-          order_id: razorpay_order_id,
-          amount: 1.00,
-          status: 'active'
-        }]);
+          // Amount is already set to 1.00 in pending, but we could update if dynamic
+        })
+        .eq('order_id', razorpay_order_id);
+        // We don't check user_id here strictly as order_id is unique, but could add for safety
 
       if (error) throw error;
 
