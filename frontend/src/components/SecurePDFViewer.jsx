@@ -13,6 +13,7 @@ export default function SecurePDFViewer({ fileUrl, onClose, title }) {
     const [pageNumber, setPageNumber] = useState(1);
     const [scale, setScale] = useState(1.0);
     const [loading, setLoading] = useState(true);
+    const [containerWidth, setContainerWidth] = useState(null);
 
     function onDocumentLoadSuccess({ numPages }) {
         setNumPages(numPages);
@@ -36,6 +37,25 @@ export default function SecurePDFViewer({ fileUrl, onClose, title }) {
         return false;
     };
 
+    function onContainerRef(node) {
+        if (node) {
+            setContainerWidth(node.clientWidth);
+        }
+    }
+
+    // Update width on resize
+    useEffect(() => {
+        const handleResize = () => {
+            const container = document.getElementById('pdf-wrapper');
+            if (container) {
+                setContainerWidth(container.clientWidth);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
         <div
             className="fixed inset-0 z-50 bg-gray-900 flex flex-col h-screen w-screen overflow-hidden select-none"
@@ -43,7 +63,7 @@ export default function SecurePDFViewer({ fileUrl, onClose, title }) {
         >
             {/* Header / Toolbar */}
             <div className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center z-10 shrink-0">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 sm:space-x-4">
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                         <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                     </button>
@@ -86,27 +106,42 @@ export default function SecurePDFViewer({ fileUrl, onClose, title }) {
             </div>
 
             {/* Document Container */}
-            <div className="flex-1 overflow-auto bg-gray-900 flex justify-center p-4 sm:p-8 touch-pan-y">
+            <div
+                id="pdf-wrapper"
+                className="flex-1 overflow-auto bg-gray-900 flex justify-center p-2 sm:p-8 touch-pan-y"
+                ref={onContainerRef}
+            >
                 <div className="shadow-2xl relative">
                     {loading && (
-                        <div className="absolute inset-0 flex items-center justify-center text-white">
+                        <div className="flex flex-col items-center justify-center p-10 text-white space-y-4">
                             <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+                            <p className="animate-pulse">Preparing secure view...</p>
                         </div>
                     )}
 
                     <Document
                         file={fileUrl}
                         onLoadSuccess={onDocumentLoadSuccess}
-                        loading={<div className="text-white p-10">Loading PDF...</div>}
+                        loading={
+                            <div className="flex flex-col items-center justify-center p-10 text-white space-y-4">
+                                <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+                                <p>Loading document...</p>
+                            </div>
+                        }
                         error={<div className="text-red-400 p-10">Failed to load PDF. Please try refreshing.</div>}
                     >
-                        <Page
-                            pageNumber={pageNumber}
-                            scale={scale}
-                            renderTextLayer={false}
-                            renderAnnotationLayer={false} // Disable links/inputs for security
-                            className="bg-white"
-                        />
+                        {/* Only render page if we have a width to base it on */}
+                        {containerWidth && (
+                            <Page
+                                pageNumber={pageNumber}
+                                scale={scale}
+                                width={Math.min(containerWidth - 16, 800)} // Responsive width: Container minus padding (16px), max 800px
+                                renderTextLayer={false}
+                                renderAnnotationLayer={false}
+                                className="bg-white"
+                                loading=""
+                            />
+                        )}
                     </Document>
                 </div>
             </div>
