@@ -88,7 +88,7 @@ router.post('/verify', requireAuth, async (req, res) => {
 router.post('/create-subscription-order', requireAuth, async (req, res) => {
   try {
     const options = {
-      amount: 100, // ₹1 in paisa (Fixed Price for Subscription)
+      amount: 10000, // ₹100 in paisa (Fixed Price for Subscription)
       currency: 'INR',
       receipt: `sub_${Date.now()}`,
       notes: { type: 'subscription', userId: req.user.id }
@@ -108,7 +108,7 @@ router.post('/create-subscription-order', requireAuth, async (req, res) => {
             end_date: startDate.toISOString(), // Placeholder until active
             payment_id: 'pending',
             order_id: order.id,
-            amount: 1.00,
+            amount: 100.00,
             status: 'pending' // << New Status
         }]);
 

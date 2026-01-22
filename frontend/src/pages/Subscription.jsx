@@ -126,7 +126,7 @@ export default function Subscription() {
                             <div className="relative z-10 text-center">
                                 <h3 className="text-2xl font-semibold mb-2 text-indigo-100">Pro Pass</h3>
                                 <div className="flex justify-center items-baseline my-6">
-                                    <span className="text-6xl font-extrabold tracking-tight">₹1</span>
+                                    <span className="text-6xl font-extrabold tracking-tight">₹100</span>
                                     <span className="text-xl text-indigo-200 ml-2">/year</span>
                                 </div>
                                 <p className="text-indigo-100 mb-8 text-sm opacity-90">

@@ -181,7 +181,7 @@ export default function NoteDetails() {
                                                 <p className="text-sm text-indigo-700 dark:text-indigo-300">Get unlimited access to everything</p>
                                             </div>
                                             <div className="text-right">
-                                                <span className="block text-2xl font-bold text-indigo-900 dark:text-indigo-200">₹1</span>
+                                                <span className="block text-2xl font-bold text-indigo-900 dark:text-indigo-200">₹100</span>
                                                 <span className="text-xs text-indigo-600 dark:text-indigo-400">/ year</span>
                                             </div>
                                         </div>
