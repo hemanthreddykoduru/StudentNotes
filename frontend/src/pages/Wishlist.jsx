@@ -3,6 +3,8 @@ import api from '../lib/api';
 import NoteCard from '../components/NoteCard';
 import { Heart } from 'lucide-react';
 
+import WishlistSkeleton from '../components/WishlistSkeleton';
+
 export default function Wishlist() {
     const [wishlist, setWishlist] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -26,7 +28,7 @@ export default function Wishlist() {
         setWishlist(prev => prev.filter(note => note.id !== noteId));
     };
 
-    if (loading) return <div className="p-8 text-center dark:text-gray-300">Loading wishlist...</div>;
+    if (loading) return <WishlistSkeleton />;
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
