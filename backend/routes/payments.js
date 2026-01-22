@@ -87,8 +87,20 @@ router.post('/verify', requireAuth, async (req, res) => {
 // POST /api/payments/create-subscription-order
 router.post('/create-subscription-order', requireAuth, async (req, res) => {
   try {
+    // 1. Fetch Price from Config
+    let price = 100; // Default
+    const { data: config } = await supabase
+        .from('app_config')
+        .select('value')
+        .eq('key', 'subscription_price')
+        .single();
+    
+    if (config) {
+        price = parseInt(config.value);
+    }
+
     const options = {
-      amount: 10000, // ₹100 in paisa (Fixed Price for Subscription)
+      amount: price * 100, // Convert to paise
       currency: 'INR',
       receipt: `sub_${Date.now()}`,
       notes: { type: 'subscription', userId: req.user.id }
@@ -108,7 +120,7 @@ router.post('/create-subscription-order', requireAuth, async (req, res) => {
             end_date: startDate.toISOString(), // Placeholder until active
             payment_id: 'pending',
             order_id: order.id,
-            amount: 100.00,
+            amount: price,
             status: 'pending' // << New Status
         }]);
 

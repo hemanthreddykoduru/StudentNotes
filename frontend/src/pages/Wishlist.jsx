@@ -8,10 +8,21 @@ import WishlistSkeleton from '../components/WishlistSkeleton';
 export default function Wishlist() {
     const [wishlist, setWishlist] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [subPrice, setSubPrice] = useState(100);
 
     useEffect(() => {
         fetchWishlist();
+        fetchConfig();
     }, []);
+
+    const fetchConfig = async () => {
+        try {
+            const { data } = await api.get('/config/subscription_price');
+            if (data && data.value) setSubPrice(data.value);
+        } catch (error) {
+            console.error('Error fetching config:', error);
+        }
+    };
 
     const fetchWishlist = async () => {
         try {
@@ -51,6 +62,7 @@ export default function Wishlist() {
                             note={note}
                             isWishlisted={true} // Always true on wishlist page
                             onWishlistChange={() => removeFromWishlist(note.id)}
+                            subPrice={subPrice}
                         />
                     ))}
                 </div>

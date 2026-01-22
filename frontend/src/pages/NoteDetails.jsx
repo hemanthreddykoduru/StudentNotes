@@ -17,12 +17,24 @@ export default function NoteDetails() {
     const [loading, setLoading] = useState(true);
     const [purchased, setPurchased] = useState(false);
     const [processing, setProcessing] = useState(false);
+    // removed duplicate
     const [showReader, setShowReader] = useState(false);
+    const [subPrice, setSubPrice] = useState(100);
 
     useEffect(() => {
         fetchNoteDetails();
+        fetchConfig();
         window.scrollTo(0, 0); // Scroll to top when note ID changes
     }, [id]);
+
+    const fetchConfig = async () => {
+        try {
+            const { data } = await api.get('/config/subscription_price');
+            if (data && data.value) setSubPrice(data.value);
+        } catch (error) {
+            console.error('Error fetching config:', error);
+        }
+    };
 
     const fetchNoteDetails = async () => {
         try {
@@ -181,7 +193,7 @@ export default function NoteDetails() {
                                                 <p className="text-sm text-indigo-700 dark:text-indigo-300">Get unlimited access to everything</p>
                                             </div>
                                             <div className="text-right">
-                                                <span className="block text-2xl font-bold text-indigo-900 dark:text-indigo-200">₹100</span>
+                                                <span className="block text-2xl font-bold text-indigo-900 dark:text-indigo-200">₹{subPrice}</span>
                                                 <span className="text-xs text-indigo-600 dark:text-indigo-400">/ year</span>
                                             </div>
                                         </div>

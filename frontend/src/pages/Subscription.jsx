@@ -7,11 +7,22 @@ import { Sparkles, Check, Shield, Zap, BookOpen, Star } from 'lucide-react';
 export default function Subscription() {
     const [loading, setLoading] = useState(false);
     const [hasSubscription, setHasSubscription] = useState(false);
+    const [price, setPrice] = useState(100);
     const navigate = useNavigate();
 
     useEffect(() => {
         checkSubscriptionStatus();
+        fetchPrice();
     }, []);
+
+    const fetchPrice = async () => {
+        try {
+            const { data } = await api.get('/config/subscription_price');
+            if (data && data.value) setPrice(data.value);
+        } catch (error) {
+            console.error('Error fetching price:', error);
+        }
+    };
 
     const checkSubscriptionStatus = async () => {
         try {
@@ -110,7 +121,7 @@ export default function Subscription() {
                     <p className="mt-4 text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
                         {hasSubscription
                             ? 'You have unlimited access to every note. Keep learning and growing!'
-                            : 'Get unlimited access to high-quality study materials, exam notes, and more for less than the price of a coffee.'
+                            : `Get unlimited access to high-quality study materials, exam notes, and more for less than ₹${price}.`
                         }
                     </p>
                 </div>
@@ -126,7 +137,7 @@ export default function Subscription() {
                             <div className="relative z-10 text-center">
                                 <h3 className="text-2xl font-semibold mb-2 text-indigo-100">Pro Pass</h3>
                                 <div className="flex justify-center items-baseline my-6">
-                                    <span className="text-6xl font-extrabold tracking-tight">₹100</span>
+                                    <span className="text-6xl font-extrabold tracking-tight">₹{price}</span>
                                     <span className="text-xl text-indigo-200 ml-2">/year</span>
                                 </div>
                                 <p className="text-indigo-100 mb-8 text-sm opacity-90">

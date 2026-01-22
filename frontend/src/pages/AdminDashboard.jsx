@@ -15,6 +15,8 @@ export default function AdminDashboard() {
     const [uploading, setUploading] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
     const [toast, setToast] = useState(null); // { message, type }
+    const [subPrice, setSubPrice] = useState(100);
+    const [updatingPrice, setUpdatingPrice] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -32,7 +34,7 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            await Promise.all([fetchNotes(), fetchStats()]);
+            await Promise.all([fetchNotes(), fetchStats(), fetchConfig()]);
         } catch (error) {
             console.error('Error fetching data:', error);
             setToast({ message: 'Failed to load dashboard data', type: 'error' });
@@ -47,6 +49,28 @@ export default function AdminDashboard() {
             setStats(data);
         } catch (error) {
             console.error('Error fetching stats:', error);
+        }
+    };
+
+    const fetchConfig = async () => {
+        try {
+            const { data } = await api.get('/config/subscription_price');
+            if (data && data.value) setSubPrice(data.value);
+        } catch (error) {
+            console.error('Error fetching config:', error);
+        }
+    };
+
+    const handleUpdatePrice = async () => {
+        setUpdatingPrice(true);
+        try {
+            await api.post('/config/subscription_price', { value: subPrice });
+            setToast({ message: 'Subscription price updated successfully!', type: 'success' });
+        } catch (error) {
+            console.error('Error updating price:', error);
+            setToast({ message: 'Failed to update price', type: 'error' });
+        } finally {
+            setUpdatingPrice(false);
         }
     };
 
@@ -273,6 +297,34 @@ export default function AdminDashboard() {
                 </div>
             )}
 
+            {/* Global Settings Section */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-12">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2 text-indigo-500" />
+                    Global Settings
+                </h3>
+                <div className="max-w-xs">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Pro Subscription Price (₹)
+                    </label>
+                    <div className="flex gap-4">
+                        <input
+                            type="number"
+                            value={subPrice}
+                            onChange={(e) => setSubPrice(e.target.value)}
+                            className="block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                        />
+                        <button
+                            onClick={handleUpdatePrice}
+                            disabled={updatingPrice}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        >
+                            {updatingPrice ? 'Saving...' : 'Save'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Manage Notes</h2>
                 <button
@@ -288,74 +340,76 @@ export default function AdminDashboard() {
                 </button>
             </div>
 
-            {showForm && (
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 relative border border-gray-200 dark:border-gray-700">
-                    <button
-                        onClick={handleCancel}
-                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    >
-                        <X className="h-6 w-6" />
-                    </button>
-                    <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                        {editingNote ? 'Edit Note' : 'Add New Note'}
-                    </h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" name="title" placeholder="Title" required
-                                value={formData.title} onChange={handleChange}
-                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                            />
-                            <input type="text" name="subject" placeholder="Subject" required
-                                value={formData.subject} onChange={handleChange}
-                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                            />
-                            <input type="number" name="price" placeholder="Price (₹)" required min="1"
-                                value={formData.price} onChange={handleChange}
-                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                            />
-                        </div>
-                        {/* Description Field */}
-                        <div>
-                            <textarea
-                                name="description"
-                                placeholder="Note Description (Detailed explanation, what's included, etc.)"
-                                rows="4"
-                                value={formData.description}
-                                onChange={handleChange}
-                                className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                            ></textarea>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Full PDF {editingNote && '(Leave empty to keep existing)'}
-                                </label>
-                                <label className="flex items-center justify-center w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors">
-                                    <span>{formData.file ? formData.file.name : 'Choose PDF File'}</span>
-                                    <input type="file" name="file" accept=".pdf" required={!editingNote} onChange={handleChange} className="hidden" />
-                                </label>
+            {
+                showForm && (
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 relative border border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={handleCancel}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                            {editingNote ? 'Edit Note' : 'Add New Note'}
+                        </h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" name="title" placeholder="Title" required
+                                    value={formData.title} onChange={handleChange}
+                                    className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                />
+                                <input type="text" name="subject" placeholder="Subject" required
+                                    value={formData.subject} onChange={handleChange}
+                                    className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                />
+                                <input type="number" name="price" placeholder="Price (₹)" required min="1"
+                                    value={formData.price} onChange={handleChange}
+                                    className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                />
                             </div>
+                            {/* Description Field */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Preview (Image/PDF) {editingNote && '(Leave empty to keep existing)'}
-                                </label>
-                                <label className="flex items-center justify-center w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors">
-                                    <span>{formData.preview ? formData.preview.name : 'Choose Preview File'}</span>
-                                    <input type="file" name="preview" accept=".pdf,.png,.jpg,.jpeg" required={!editingNote} onChange={handleChange} className="hidden" />
-                                </label>
+                                <textarea
+                                    name="description"
+                                    placeholder="Note Description (Detailed explanation, what's included, etc.)"
+                                    rows="4"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="p-2 border rounded w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                ></textarea>
                             </div>
-                        </div>
-                        <div className="flex gap-4 pt-2">
-                            <button type="submit" disabled={uploading} className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-medium transition-colors shadow-sm">
-                                {uploading ? 'Processing...' : (editingNote ? 'Update Note' : 'Save Note')}
-                            </button>
-                            <button type="button" onClick={handleCancel} className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-6 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Full PDF {editingNote && '(Leave empty to keep existing)'}
+                                    </label>
+                                    <label className="flex items-center justify-center w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors">
+                                        <span>{formData.file ? formData.file.name : 'Choose PDF File'}</span>
+                                        <input type="file" name="file" accept=".pdf" required={!editingNote} onChange={handleChange} className="hidden" />
+                                    </label>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Preview (Image/PDF) {editingNote && '(Leave empty to keep existing)'}
+                                    </label>
+                                    <label className="flex items-center justify-center w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors">
+                                        <span>{formData.preview ? formData.preview.name : 'Choose Preview File'}</span>
+                                        <input type="file" name="preview" accept=".pdf,.png,.jpg,.jpeg" required={!editingNote} onChange={handleChange} className="hidden" />
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 pt-2">
+                                <button type="submit" disabled={uploading} className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 font-medium transition-colors shadow-sm">
+                                    {uploading ? 'Processing...' : (editingNote ? 'Update Note' : 'Save Note')}
+                                </button>
+                                <button type="button" onClick={handleCancel} className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-6 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )
+            }
 
             <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 sm:rounded-xl overflow-hidden">
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -399,6 +453,6 @@ export default function AdminDashboard() {
                     )}
                 </ul>
             </div>
-        </div>
+        </div >
     );
 }
