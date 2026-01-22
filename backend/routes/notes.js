@@ -65,11 +65,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+const optionalAuth = require('../middleware/optionalAuth');
+
+// ... [existing search route] ...
+
 // GET /api/notes/:id - Get note details (Secured)
-router.get('/:id', async (req, res) => {
+// Use optionalAuth to populate req.user if a token is present
+router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.headers['x-user-id']; // We will pass User ID from frontend if logged in
+    // SECURITY FIX: Do NOT trust x-user-id header. Use verified req.user.id from middleware.
+    const userId = req.user ? req.user.id : null; 
 
     // 1. Fetch Note Details
     const { data: note, error } = await supabase
@@ -80,7 +86,7 @@ router.get('/:id', async (req, res) => {
 
     if (error) throw error;
 
-    // If no user, return basic info only (no file_url)
+    // If no user (Guest), return basic info only (no file_url)
     if (!userId) {
         const { file_url, ...safeNote } = note;
         return res.json({ ...safeNote, hasAccess: false });
