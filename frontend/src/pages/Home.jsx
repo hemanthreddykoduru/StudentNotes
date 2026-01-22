@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import NoteCard from '../components/NoteCard';
 import Hero3D from '../components/Hero3D';
-import { Search, Filter, X, Sparkles } from 'lucide-react';
+import { Search, Filter, X, Sparkles, CheckCircle } from 'lucide-react';
 
 export default function Home() {
     const navigate = useNavigate();
@@ -84,13 +84,29 @@ export default function Home() {
 
                     {/* Hero CTA */}
                     <div
-                        onClick={() => navigate('/pricing')}
-                        className="mt-8 flex items-center justify-center cursor-pointer group"
+                        onClick={() => {
+                            if (!loading && !isSubscribed) {
+                                navigate('/pricing');
+                            }
+                        }}
+                        className={`mt-8 flex items-center justify-center ${!loading && !isSubscribed ? 'cursor-pointer' : 'cursor-default'} group`}
                     >
-                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse" />
-                            <span className="text-base sm:text-lg tracking-wide">Pay ₹1 for all notes</span>
-                        </div>
+                        {loading ? (
+                            <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full shadow-lg">
+                                <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                                <span className="text-base sm:text-lg tracking-wide">Checking status...</span>
+                            </div>
+                        ) : isSubscribed ? (
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-white font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full shadow-lg shadow-amber-500/30">
+                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                <span className="text-base sm:text-lg tracking-wide">Premium Access Active</span>
+                            </div>
+                        ) : (
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse" />
+                                <span className="text-base sm:text-lg tracking-wide">Pay ₹1 for all notes</span>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <Hero3D />
