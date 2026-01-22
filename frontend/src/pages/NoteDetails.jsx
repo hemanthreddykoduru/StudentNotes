@@ -7,6 +7,7 @@ import ReviewsSection from '../components/ReviewsSection';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SocialShare from '../components/SocialShare';
 import RelatedNotes from '../components/RelatedNotes';
+import NoteDetailSkeleton from '../components/NoteDetailSkeleton';
 
 export default function NoteDetails() {
     const { id } = useParams();
@@ -97,7 +98,7 @@ export default function NoteDetails() {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <NoteDetailSkeleton />;
     if (!note) return <div>Note not found</div>;
 
     const breadcrumbItems = [
