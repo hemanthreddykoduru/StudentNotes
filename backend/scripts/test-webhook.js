@@ -1,4 +1,3 @@
-const axios = require('axios');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
 const fs = require('fs');
@@ -19,7 +18,7 @@ const webhookUrl = 'http://localhost:5000/api/payments/webhook';
 // Mock Data
 const orderId = 'order_Mock' + Date.now();
 const paymentId = 'pay_Mock' + Date.now();
-const userId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; // Replace with a VALID user UUID from your DB for real test
+const userId = '19705d2b-2158-4cc3-a77e-d50511197777'; // Using the user ID we know exists
 
 const payload = {
   "entity": "event",
@@ -82,19 +81,22 @@ const signature = crypto.createHmac('sha256', secret)
 
 console.log('Sending Webhook Request...');
 console.log('URL:', webhookUrl);
-console.log('Order ID:', orderId);
-console.log('Signature:', signature);
 
-// Send Request
-axios.post(webhookUrl, payload, {
-  headers: {
-    'x-razorpay-signature': signature,
-    'Content-Type': 'application/json'
+(async () => {
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-razorpay-signature': signature
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    console.log('Response Status:', response.status);
+    console.log('Response Data:', data);
+  } catch (error) {
+    console.error('Error:', error.message);
   }
-})
-.then(response => {
-  console.log('Response:', response.data);
-})
-.catch(error => {
-  console.error('Error:', error.response ? error.response.data : error.message);
-});
+})();
