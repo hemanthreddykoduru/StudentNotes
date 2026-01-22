@@ -101,7 +101,6 @@ export default function AdminDashboard() {
             const noteData = {
                 title: formData.title,
                 subject: formData.subject,
-                subject: formData.subject,
                 price: formData.price,
                 description: formData.description, // Include description in payload
                 file_url: fileUrl,
