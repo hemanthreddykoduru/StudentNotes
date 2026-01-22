@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { supabase } from '../lib/supabase';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Lock, BookOpen } from 'lucide-react';
 import ReviewsSection from '../components/ReviewsSection';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SocialShare from '../components/SocialShare';
 import RelatedNotes from '../components/RelatedNotes';
 import NoteDetailSkeleton from '../components/NoteDetailSkeleton';
+import SecurePDFViewer from '../components/SecurePDFViewer';
 
 export default function NoteDetails() {
     const { id } = useParams();
@@ -16,6 +17,7 @@ export default function NoteDetails() {
     const [loading, setLoading] = useState(true);
     const [purchased, setPurchased] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [showReader, setShowReader] = useState(false);
 
     useEffect(() => {
         fetchNoteDetails();
@@ -151,25 +153,18 @@ export default function NoteDetails() {
                                 </p>
                             </div>
 
-                            {purchased ? ( // Show Full Screen Button if already bought/subscribed
+                            {purchased ? ( // Show Secure Reader Button
                                 <div className="space-y-4">
                                     <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 rounded-lg text-center font-medium flex items-center justify-center">
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                        You have full access to this note
+                                        <Lock className="w-5 h-5 mr-2" />
+                                        You have full access
                                     </div>
                                     <button
-                                        onClick={() => {
-                                            const elem = document.getElementById('pdf-container');
-                                            if (elem && elem.requestFullscreen) {
-                                                elem.requestFullscreen();
-                                            }
-                                        }}
-                                        className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        onClick={() => setShowReader(true)}
+                                        className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4M4 20l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                        </svg>
-                                        View in Full Screen
+                                        <BookOpen className="h-5 w-5 mr-2" />
+                                        Read Now (Secure Viewer)
                                     </button>
                                 </div>
                             ) : (
@@ -232,18 +227,6 @@ export default function NoteDetails() {
                         </div>
                     </div>
                 </div>
-                {/* Hidden Wrapper for Full Screen logic */}
-                {purchased && note.file_url && (
-                    <div className="h-0 w-0 overflow-hidden">
-                        <div id="pdf-container" className="bg-gray-100 flex items-center justify-center h-screen w-screen">
-                            <iframe
-                                src={`${note.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                                className="w-full h-full bg-white"
-                                title="Full Note"
-                            />
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Related Notes Section */}
@@ -254,6 +237,14 @@ export default function NoteDetails() {
                 <ReviewsSection noteId={id} />
             </div>
 
+            {/* Secure Reader Modal */}
+            {showReader && purchased && note.file_url && (
+                <SecurePDFViewer
+                    fileUrl={note.file_url}
+                    title={note.title}
+                    onClose={() => setShowReader(false)}
+                />
+            )}
         </div>
     );
 }
