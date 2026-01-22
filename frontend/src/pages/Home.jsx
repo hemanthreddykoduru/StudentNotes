@@ -104,7 +104,7 @@ export default function Home() {
                         ) : (
                             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                                 <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse" />
-                                <span className="text-base sm:text-lg tracking-wide">Pay ₹1 for all notes</span>
+                                <span className="text-base sm:text-lg tracking-wide">Pay ₹100 for all notes</span>
                             </div>
                         )}
                     </div>

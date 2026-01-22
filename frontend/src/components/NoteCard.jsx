@@ -74,7 +74,7 @@ export default function NoteCard({ note, isWishlisted, isSubscribed }) {
                                 className="group/btn flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 pl-2 pr-3 py-1 rounded-full hover:shadow-md hover:scale-105 transition-all duration-300"
                             >
                                 <Sparkles className="w-3 h-3 text-yellow-200 animate-pulse" />
-                                <span>or pay ₹1 for all notes</span>
+                                <span>or pay ₹100 for all notes</span>
                             </button>
                         </div>
                     )}
