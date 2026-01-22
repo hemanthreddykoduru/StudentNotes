@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { Plus, Trash2, Pencil, X, TrendingUp, Users, FileText, DollarSign } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+import Toast from '../components/Toast';
+
 export default function AdminDashboard() {
     const [notes, setNotes] = useState([]);
     const [stats, setStats] = useState(null);
@@ -11,6 +13,7 @@ export default function AdminDashboard() {
     const [showForm, setShowForm] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
+    const [toast, setToast] = useState(null); // { message, type }
 
     const [formData, setFormData] = useState({
         title: '',
@@ -31,6 +34,7 @@ export default function AdminDashboard() {
             await Promise.all([fetchNotes(), fetchStats()]);
         } catch (error) {
             console.error('Error fetching data:', error);
+            setToast({ message: 'Failed to load dashboard data', type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -109,10 +113,10 @@ export default function AdminDashboard() {
 
             if (editingNote) {
                 await api.put(`/notes/${editingNote.id}`, noteData);
-                alert('Note updated successfully!');
+                setToast({ message: 'Note updated successfully!', type: 'success' });
             } else {
                 await api.post('/notes', noteData);
-                alert('Note added successfully!');
+                setToast({ message: 'Note added successfully!', type: 'success' });
             }
 
             setShowForm(false);
@@ -123,7 +127,7 @@ export default function AdminDashboard() {
         } catch (error) {
             console.error('Error saving note:', error);
             const message = error.response?.data?.error || error.message;
-            alert(`Error: ${message}`);
+            setToast({ message: `Error: ${message}`, type: 'error' });
         } finally {
             setUploading(false);
         }
@@ -147,12 +151,12 @@ export default function AdminDashboard() {
 
         try {
             await api.delete(`/notes/${id}`);
-            alert('Note deleted successfully');
+            setToast({ message: 'Note deleted successfully', type: 'success' });
             fetchNotes();
             fetchStats(); // Update active note count
         } catch (error) {
             console.error('Error deleting note:', error);
-            alert('Failed to delete note');
+            setToast({ message: 'Failed to delete note', type: 'error' });
         }
     };
 
@@ -166,9 +170,11 @@ export default function AdminDashboard() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Admin Dashboard</h1>
 
-            {/* Analytics Section */}
+            {/* Rest of the component... */}
             {stats && (
                 <div className="mb-12 space-y-8">
                     {/* Key Metrics Cards */}
