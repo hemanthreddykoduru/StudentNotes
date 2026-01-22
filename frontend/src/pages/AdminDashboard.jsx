@@ -3,6 +3,7 @@ import api from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { Plus, Trash2, Pencil, X, TrendingUp, Users, FileText, DollarSign } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import AdminDashboardSkeleton from '../components/AdminDashboardSkeleton'; // Import Skeleton
 
 import Toast from '../components/Toast';
 
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
         setFormData({ title: '', subject: '', price: '', description: '', file: null, preview: null });
     };
 
-    if (loading) return <div className="p-8 dark:text-gray-300">Loading...</div>;
+    if (loading) return <AdminDashboardSkeleton />;
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
