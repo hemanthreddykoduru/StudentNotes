@@ -15,6 +15,7 @@ export default function MyAccount() {
 
     // Password Update State
     const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
@@ -98,6 +99,20 @@ export default function MyAccount() {
 
         setUpdatingPassword(true);
         try {
+            // 1. Verify Current Password
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: passwordData.currentPassword
+            });
+
+            if (signInError) {
+                if (signInError.message.includes("Invalid login credentials")) {
+                    throw new Error("Incorrect current password.");
+                }
+                throw signInError;
+            }
+
+            // 2. Update to New Password
             const { error } = await supabase.auth.updateUser({
                 password: passwordData.newPassword
             });
@@ -105,7 +120,7 @@ export default function MyAccount() {
             if (error) throw error;
 
             setToast({ message: 'Password updated successfully!', type: 'success' });
-            setPasswordData({ newPassword: '', confirmPassword: '' });
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (error) {
             console.error('Error updating password:', error.message);
             setToast({ message: `Error: ${error.message}`, type: 'error' });
@@ -223,6 +238,20 @@ export default function MyAccount() {
                 </div>
                 <div className="p-6 md:p-8 space-y-6">
                     <form onSubmit={handlePasswordUpdate}>
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Current Password
+                            </label>
+                            <input
+                                type="password"
+                                value={passwordData.currentPassword}
+                                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                required
+                                placeholder="Enter current password"
+                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
