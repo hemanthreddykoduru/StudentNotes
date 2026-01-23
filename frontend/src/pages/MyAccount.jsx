@@ -13,6 +13,13 @@ export default function MyAccount() {
     });
     const [toast, setToast] = useState(null);
 
+    // Password Update State
+    const [passwordData, setPasswordData] = useState({
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [updatingPassword, setUpdatingPassword] = useState(false);
+
     useEffect(() => {
         const getProfile = async () => {
             try {
@@ -73,6 +80,37 @@ export default function MyAccount() {
             setToast({ message: `Error updating profile: ${error.message}`, type: 'error' });
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setToast({ message: "Passwords don't match!", type: 'error' });
+            return;
+        }
+
+        if (passwordData.newPassword.length < 6) {
+            setToast({ message: "Password must be at least 6 characters.", type: 'error' });
+            return;
+        }
+
+        setUpdatingPassword(true);
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: passwordData.newPassword
+            });
+
+            if (error) throw error;
+
+            setToast({ message: 'Password updated successfully!', type: 'success' });
+            setPasswordData({ newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            console.error('Error updating password:', error.message);
+            setToast({ message: `Error: ${error.message}`, type: 'error' });
+        } finally {
+            setUpdatingPassword(false);
         }
     };
 
@@ -172,6 +210,56 @@ export default function MyAccount() {
                                         Save Changes
                                     </>
                                 )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {/* Password Update Section */}
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden mt-8">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Security</h3>
+                </div>
+                <div className="p-6 md:p-8 space-y-6">
+                    <form onSubmit={handlePasswordUpdate}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    New Password
+                                </label>
+                                <input
+                                    type="password"
+                                    value={passwordData.newPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                    required
+                                    minLength={6}
+                                    placeholder="Min 6 characters"
+                                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Confirm New Password
+                                </label>
+                                <input
+                                    type="password"
+                                    value={passwordData.confirmPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                    required
+                                    minLength={6}
+                                    placeholder="Re-enter password"
+                                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end mt-6">
+                            <button
+                                type="submit"
+                                disabled={updatingPassword}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                            >
+                                {updatingPassword ? 'Updating...' : 'Update Password'}
                             </button>
                         </div>
                     </form>
