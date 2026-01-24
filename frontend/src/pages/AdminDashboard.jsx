@@ -250,15 +250,18 @@ export default function AdminDashboard() {
             const newStatus = !note.is_active;
 
             // Optimistic update
-            setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, is_active: newStatus } : n)));
+            setNotes((prev) => prev.map((n) => (String(n.id) === String(note.id) ? { ...n, is_active: newStatus } : n)));
 
             await api.put(`/notes/${note.id}`, { is_active: newStatus });
 
             setToast({ message: `Note is now ${newStatus ? 'Active' : 'Inactive'}`, type: 'success' });
+
+            // Re-fetch to ensure data consistency
+            fetchNotes();
         } catch (error) {
             console.error('Error updating status:', error);
             // Revert
-            setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, is_active: !note.is_active } : n)));
+            setNotes((prev) => prev.map((n) => (String(n.id) === String(note.id) ? { ...n, is_active: !note.is_active } : n)));
             setToast({ message: 'Failed to update status', type: 'error' });
         }
     };
@@ -344,7 +347,7 @@ export default function AdminDashboard() {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Notes</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalNotes}</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{notes.length}</p>
                             </div>
                         </div>
                     </div>
