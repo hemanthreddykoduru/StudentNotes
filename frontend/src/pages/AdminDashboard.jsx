@@ -449,7 +449,7 @@ export default function AdminDashboard() {
                                 {supportMessages.map((msg) => (
                                     <tr key={msg.id}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {new Date(msg.created_at).toLocaleDateString()}
+                                            {new Date(msg.created_at).toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-medium text-gray-900 dark:text-white">{msg.name}</div>
