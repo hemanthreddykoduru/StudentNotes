@@ -59,7 +59,7 @@ const Support = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white mb-1">Phone Support</h3>
-                  <p className="text-gray-600 dark:text-gray-300">9966659900</p>
+                  <p className="text-gray-600 dark:text-gray-300">+91 98765 43210</p>
                   <p className="text-sm text-gray-500 mt-1">Mon-Fri from 9am to 6pm IST</p>
                 </div>
               </div>
@@ -70,7 +70,7 @@ const Support = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white mb-1">Email Us</h3>
-                  <p className="text-gray-600 dark:text-gray-300">help-contact@quickxerox.app</p>
+                  <p className="text-gray-600 dark:text-gray-300">contact@hemanthreddykoduru.dev</p>
                 </div>
               </div>
             </div>
