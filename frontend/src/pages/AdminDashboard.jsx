@@ -150,15 +150,11 @@ export default function AdminDashboard() {
 
     const fetchNotes = async () => {
         try {
-            const { data, error } = await supabase
-                .from('notes')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
+            const { data } = await api.get('/notes/admin/all');
             setNotes(data);
         } catch (error) {
             console.error('Error fetching notes:', error);
+            setToast({ message: 'Failed to fetch notes', type: 'error' });
         }
     };
 
@@ -249,6 +245,24 @@ export default function AdminDashboard() {
         setDeleteConfirmation({ isOpen: true, type: 'note', id });
     };
 
+    const handleToggleStatus = async (note) => {
+        try {
+            const newStatus = !note.is_active;
+
+            // Optimistic update
+            setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, is_active: newStatus } : n)));
+
+            await api.put(`/notes/${note.id}`, { is_active: newStatus });
+
+            setToast({ message: `Note is now ${newStatus ? 'Active' : 'Inactive'}`, type: 'success' });
+        } catch (error) {
+            console.error('Error updating status:', error);
+            // Revert
+            setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, is_active: !note.is_active } : n)));
+            setToast({ message: 'Failed to update status', type: 'error' });
+        }
+    };
+
     const handleCancel = () => {
         setShowForm(false);
         setEditingNote(null);
@@ -329,7 +343,7 @@ export default function AdminDashboard() {
                                 <FileText className="w-8 h-8" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Notes</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Notes</p>
                                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalNotes}</p>
                             </div>
                         </div>
@@ -577,9 +591,13 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                             <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-3 mt-2 sm:mt-0">
-                                <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${note.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'}`}>
+                                <button
+                                    onClick={() => handleToggleStatus(note)}
+                                    className={`px-2.5 py-0.5 text-xs font-medium rounded-full cursor-pointer transition-colors active:scale-95 ${note.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'}`}
+                                    title="Click to toggle visibility"
+                                >
                                     {note.is_active ? 'Active' : 'Inactive'}
-                                </span>
+                                </button>
 
                                 <div className="flex space-x-2">
                                     <button

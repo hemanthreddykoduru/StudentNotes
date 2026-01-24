@@ -35,8 +35,7 @@ router.get('/stats', requireAuth, requireAdmin, async (req, res) => {
         // 2. Total Notes
         const { count: totalNotes, error: notesError } = await supabase
             .from('notes')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_active', true);
+            .select('*', { count: 'exact', head: true });
 
         if (notesError) throw notesError;
 

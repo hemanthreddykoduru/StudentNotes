@@ -65,6 +65,33 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/notes/admin/all - List ALL notes (Admin only)
+router.get('/admin/all', requireAuth, async (req, res) => {
+    try {
+        // Check if user is admin
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', req.user.id)
+            .single();
+
+        if (profileError || !profile || profile.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied. Admins only.' });
+        }
+
+        const { data: notes, error } = await supabase
+            .from('notes')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(notes);
+    } catch (error) {
+        console.error('Error fetching admin notes:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const optionalAuth = require('../middleware/optionalAuth');
 
 // ... [existing search route] ...
