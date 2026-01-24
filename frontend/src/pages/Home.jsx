@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
+import { supabase } from '../lib/supabase';
 import NoteCard from '../components/NoteCard';
 import Hero3D from '../components/Hero3D';
 import { Search, Filter, X, Sparkles, CheckCircle } from 'lucide-react';
@@ -22,6 +23,39 @@ export default function Home() {
 
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [subPrice, setSubPrice] = useState(100);
+
+    // Real-time Subscriptions
+    useEffect(() => {
+        const notesChannel = supabase
+            .channel('public:notes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, (payload) => {
+                if (payload.eventType === 'INSERT') {
+                    // Only add if it matches current simplistic "all" view or simplistic prepend
+                    // For perfect sync with filters, re-fetching is safer, but user asked for "instant".
+                    // Let's prepend it.
+                    setNotes((prev) => [payload.new, ...prev]);
+                } else if (payload.eventType === 'UPDATE') {
+                    setNotes((prev) => prev.map((n) => (n.id === payload.new.id ? { ...n, ...payload.new } : n)));
+                } else if (payload.eventType === 'DELETE') {
+                    setNotes((prev) => prev.filter((n) => n.id !== payload.old.id));
+                }
+            })
+            .subscribe();
+
+        const configChannel = supabase
+            .channel('public:app_config')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config', filter: 'key=eq.subscription_price' }, (payload) => {
+                if (payload.new && payload.new.value) {
+                    setSubPrice(payload.new.value);
+                }
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(notesChannel);
+            supabase.removeChannel(configChannel);
+        };
+    }, []);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {

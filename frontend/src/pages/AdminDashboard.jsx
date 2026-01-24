@@ -36,6 +36,37 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         fetchData();
+
+        // Realtime subscriptions
+        const notesChannel = supabase
+            .channel('admin:notes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, (payload) => {
+                if (payload.eventType === 'INSERT') {
+                    setNotes((prev) => [payload.new, ...prev]);
+                } else if (payload.eventType === 'UPDATE') {
+                    setNotes((prev) => prev.map((n) => (n.id === payload.new.id ? { ...n, ...payload.new } : n)));
+                } else if (payload.eventType === 'DELETE') {
+                    setNotes((prev) => prev.filter((n) => n.id !== payload.old.id));
+                }
+            })
+            .subscribe();
+
+        const messagesChannel = supabase
+            .channel('admin:messages')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, (payload) => {
+                if (payload.eventType === 'INSERT') {
+                    setSupportMessages((prev) => [payload.new, ...prev]);
+                    setToast({ message: 'New support message received!', type: 'success' });
+                } else if (payload.eventType === 'DELETE') {
+                    setSupportMessages((prev) => prev.filter((m) => m.id !== payload.old.id));
+                }
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(notesChannel);
+            supabase.removeChannel(messagesChannel);
+        };
     }, []);
 
     const fetchData = async () => {
