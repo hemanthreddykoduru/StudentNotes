@@ -1,28 +1,35 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Pencil, X, TrendingUp, Users, FileText, DollarSign } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, TrendingUp, Users, FileText, DollarSign, MessageSquare } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AdminDashboardSkeleton from '../components/AdminDashboardSkeleton'; // Import Skeleton
 
 import Toast from '../components/Toast';
 
 export default function AdminDashboard() {
+    const [deleteConfirmation, setDeleteConfirmation] = useState({
+        isOpen: false,
+        type: null, // 'note' or 'message'
+        id: null,
+    });
+
     const [notes, setNotes] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
-    const [toast, setToast] = useState(null); // { message, type }
+    const [toast, setToast] = useState(null);
     const [subPrice, setSubPrice] = useState(100);
     const [updatingPrice, setUpdatingPrice] = useState(false);
+    const [supportMessages, setSupportMessages] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
         subject: '',
         price: '',
-        description: '', // Add description to initial state
+        description: '',
         file: null,
         preview: null,
     });
@@ -34,7 +41,7 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            await Promise.all([fetchNotes(), fetchStats(), fetchConfig()]);
+            await Promise.all([fetchNotes(), fetchStats(), fetchConfig(), fetchSupportMessages()]);
         } catch (error) {
             console.error('Error fetching data:', error);
             setToast({ message: 'Failed to load dashboard data', type: 'error' });
@@ -59,6 +66,42 @@ export default function AdminDashboard() {
         } catch (error) {
             console.error('Error fetching config:', error);
         }
+    };
+
+    const fetchSupportMessages = async () => {
+        try {
+            const { data } = await api.get('/support/messages');
+            setSupportMessages(data);
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    };
+
+    const confirmDelete = async () => {
+        const { type, id } = deleteConfirmation;
+        if (!type || !id) return;
+
+        try {
+            if (type === 'message') {
+                await api.delete(`/support/${id}`);
+                setToast({ message: 'Message deleted successfully', type: 'success' });
+                fetchSupportMessages();
+            } else if (type === 'note') {
+                await api.delete(`/notes/${id}`);
+                setToast({ message: 'Note deleted successfully', type: 'success' });
+                fetchNotes();
+                fetchStats(); // Update active note count
+            }
+        } catch (error) {
+            console.error(`Error deleting ${type}:`, error);
+            setToast({ message: `Failed to delete ${type}`, type: 'error' });
+        } finally {
+            setDeleteConfirmation({ isOpen: false, type: null, id: null });
+        }
+    };
+
+    const handleDeleteMessage = (id) => {
+        setDeleteConfirmation({ isOpen: true, type: 'message', id });
     };
 
     const handleUpdatePrice = async () => {
@@ -131,7 +174,7 @@ export default function AdminDashboard() {
                 title: formData.title,
                 subject: formData.subject,
                 price: formData.price,
-                description: formData.description, // Include description in payload
+                description: formData.description,
                 file_url: fileUrl,
                 preview_url: previewUrl
             };
@@ -147,7 +190,7 @@ export default function AdminDashboard() {
             setShowForm(false);
             setEditingNote(null);
             setFormData({ title: '', subject: '', price: '', description: '', file: null, preview: null });
-            fetchData(); // Refresh everything including stats
+            fetchData();
 
         } catch (error) {
             console.error('Error saving note:', error);
@@ -164,25 +207,15 @@ export default function AdminDashboard() {
             title: note.title,
             subject: note.subject,
             price: note.price,
-            description: note.description || '', // Pre-fill description
-            file: null, // Don't pre-fill file inputs
+            description: note.description || '',
+            file: null,
             preview: null
         });
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to delete this note? This cannot be undone.")) return;
-
-        try {
-            await api.delete(`/notes/${id}`);
-            setToast({ message: 'Note deleted successfully', type: 'success' });
-            fetchNotes();
-            fetchStats(); // Update active note count
-        } catch (error) {
-            console.error('Error deleting note:', error);
-            setToast({ message: 'Failed to delete note', type: 'error' });
-        }
+    const handleDelete = (id) => {
+        setDeleteConfirmation({ isOpen: true, type: 'note', id });
     };
 
     const handleCancel = () => {
@@ -196,6 +229,44 @@ export default function AdminDashboard() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmation.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 max-w-md w-full p-6 transform transition-all scale-100">
+                        <div className="flex items-center mb-4 text-red-600 dark:text-red-400">
+                            <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-full mr-3">
+                                <Trash2 className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Confirm Deletion</h3>
+                        </div>
+
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            Are you sure you want to delete this {deleteConfirmation.type}?
+                            {deleteConfirmation.type === 'note' &&
+                                <span className="block mt-2 text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                                    This action cannot be undone. Users who purchased this note may lose access.
+                                </span>
+                            }
+                        </p>
+
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setDeleteConfirmation({ isOpen: false, type: null, id: null })}
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Admin Dashboard</h1>
 
@@ -323,6 +394,58 @@ export default function AdminDashboard() {
                         </button>
                     </div>
                 </div>
+            </div>
+
+            {/* Support Messages Section */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-12">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <MessageSquare className="w-5 h-5 mr-2 text-indigo-500" />
+                    Support Messages
+                </h3>
+                {supportMessages.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead>
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">From</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subject</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                {supportMessages.map((msg) => (
+                                    <tr key={msg.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            {new Date(msg.created_at).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-gray-900 dark:text-white">{msg.name}</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">{msg.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {msg.subject}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                                            {msg.message}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => handleDeleteMessage(msg.id)}
+                                                className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">No new messages.</p>
+                )}
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">

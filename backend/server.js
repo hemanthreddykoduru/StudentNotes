@@ -28,6 +28,7 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/config', require('./routes/config'));
+app.use('/api/support', require('./routes/support'));
 
 if (require.main === module) {
   app.listen(PORT, () => {
