@@ -6,10 +6,10 @@ import { useEffect } from 'react';
  * @param {string} adFormat - Ad format (auto, rectangle, horizontal, vertical)
  * @param {boolean} fullWidthResponsive - Enable full width responsive ads
  */
-export default function AdSense({ 
-    adSlot, 
-    adFormat = 'auto', 
-    fullWidthResponsive = true 
+export default function AdSense({
+    adSlot,
+    adFormat = 'auto',
+    fullWidthResponsive = true
 }) {
     useEffect(() => {
         try {
@@ -24,18 +24,12 @@ export default function AdSense({
 
     // Only show ads in production
     if (process.env.NODE_ENV !== 'production') {
-        return (
-            <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                    Ad Placeholder (Development Mode)
-                </p>
-            </div>
-        );
+        return null;
     }
 
     return (
         <div className="adsense-container my-4">
-            <ins 
+            <ins
                 className="adsbygoogle"
                 style={{ display: 'block' }}
                 data-ad-client="ca-pub-6334356671488767"

@@ -15,6 +15,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CancellationRefund from './pages/CancellationRefund';
 import AuthHandler from './components/AuthHandler';
+import GoogleAdSenseLoader from './components/GoogleAdSenseLoader';
 
 // Placeholders for now
 const NoteDetailsPlaceholder = () => <div>Details Page</div>;
@@ -28,6 +29,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <AuthHandler />
+        <GoogleAdSenseLoader />
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex flex-col">
           <Navbar />
           <div className="flex-grow">
