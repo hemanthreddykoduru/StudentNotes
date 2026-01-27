@@ -154,10 +154,12 @@ export default function Home() {
                 <Hero3D />
             </div>
 
-            {/* AdSense - Below Hero */}
-            <div className="mb-8">
-                <AdSense adSlot="1234567890" adFormat="horizontal" />
-            </div>
+            {/* AdSense - Below Hero (Non-Subscribers Only) */}
+            {!isSubscribed && (
+                <div className="mb-8">
+                    <AdSense adSlot="1234567890" adFormat="horizontal" />
+                </div>
+            )}
 
             {/* Search & Filter Bar */}
             <div className="mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
