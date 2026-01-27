@@ -16,6 +16,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import CancellationRefund from './pages/CancellationRefund';
 import AuthHandler from './components/AuthHandler';
 import GoogleAdSenseLoader from './components/GoogleAdSenseLoader';
+import ChatAssistant from './components/ChatAssistant';
 
 // Placeholders for now
 const NoteDetailsPlaceholder = () => <div>Details Page</div>;
@@ -30,6 +31,7 @@ function App() {
       <Router>
         <AuthHandler />
         <GoogleAdSenseLoader />
+        <ChatAssistant />
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex flex-col">
           <Navbar />
           <div className="flex-grow">
