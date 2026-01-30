@@ -19,60 +19,54 @@ export default function ChatAssistant() {
         scrollToBottom();
     }, [messages, isOpen]);
 
-    const handleSend = () => {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSend = async () => {
         if (!input.trim()) return;
 
         const userMsg = { id: Date.now(), text: input, sender: 'user' };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
+        setIsLoading(true);
 
-        // Process response with a small delay for realism
-        setTimeout(() => {
-            const botResponse = generateResponse(userMsg.text.toLowerCase());
-            setMessages(prev => [...prev, { id: Date.now() + 1, ...botResponse, sender: 'bot' }]);
-        }, 600);
-    };
+        try {
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+            const res = await fetch(`${API_URL}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userMsg.text })
+            });
 
-    const generateResponse = (text) => {
-        // Navigation / Search
-        if (text.includes('note') || text.includes('search') || text.includes('find') || text.includes('subject')) {
-            return {
-                text: "You can search for notes by subject or title on our Home page.",
-                action: { label: "Go to Search", path: "/" }
-            };
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (data.message && data.message.includes('Gemini API Key is missing')) {
+                    setMessages(prev => [...prev, {
+                        id: Date.now() + 1,
+                        text: "⚠️ System Error: Gemini API Key is missing on the server. Please add it to backend/.env",
+                        sender: 'bot'
+                    }]);
+                } else {
+                    throw new Error(data.error || 'Failed to get response');
+                }
+            } else {
+                setMessages(prev => [...prev, {
+                    id: Date.now() + 1,
+                    text: data.text,
+                    action: data.action,
+                    sender: 'bot'
+                }]);
+            }
+        } catch (error) {
+            console.error('Chat Error:', error);
+            setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                text: "Sorry, I'm having trouble connecting to my brain right now. Please try again later.",
+                sender: 'bot'
+            }]);
+        } finally {
+            setIsLoading(false);
         }
-
-        // Pricing / Subscription
-        if (text.includes('price') || text.includes('cost') || text.includes('pay') || text.includes('subscription') || text.includes('pro')) {
-            return {
-                text: "Our Pro plan gives you unlimited access for just ₹100/year.",
-                action: { label: "View Pricing", path: "/pricing" }
-            };
-        }
-
-        // Login / Account
-        if (text.includes('login') || text.includes('sign') || text.includes('account')) {
-            return {
-                text: "You can log in or manage your account here.",
-                action: { label: "Login / Account", path: "/login" }
-            };
-        }
-
-        // Support
-        if (text.includes('help') || text.includes('support') || text.includes('contact') || text.includes('refund')) {
-            return {
-                text: "Need assistance? Our support team is here for you.",
-                action: { label: "Contact Support", path: "/support" }
-            };
-        }
-
-        // General Greetings
-        if (text.includes('hi') || text.includes('hello') || text.includes('hey')) {
-            return { text: "Hello! Detailed questions work best. Try asking about 'pricing' or 'notes'." };
-        }
-
-        // Default
-        return { text: "I'm not sure about that. Try asking about notes, pricing, or support!" };
     };
 
     const handleKeyDown = (e) => {
@@ -101,8 +95,8 @@ export default function ChatAssistant() {
                             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div
                                     className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${msg.sender === 'user'
-                                            ? 'bg-indigo-600 text-white rounded-br-none'
-                                            : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-bl-none shadow-sm'
+                                        ? 'bg-indigo-600 text-white rounded-br-none'
+                                        : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-bl-none shadow-sm'
                                         }`}
                                 >
                                     <p>{msg.text}</p>
@@ -119,6 +113,18 @@ export default function ChatAssistant() {
                                 </div>
                             </div>
                         ))}
+                        {/* Loading Indicator */}
+                        {isLoading && (
+                            <div className="flex justify-start px-4">
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-bl-none px-4 py-2 shadow-sm border border-gray-200 dark:border-gray-700">
+                                    <div className="flex space-x-1">
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 

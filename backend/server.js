@@ -29,6 +29,7 @@ app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/config', require('./routes/config'));
 app.use('/api/support', require('./routes/support'));
+app.use('/api/chat', require('./routes/chat'));
 
 if (require.main === module) {
   app.listen(PORT, () => {
