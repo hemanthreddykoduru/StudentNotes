@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest"});
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash"});
 
         // Context / Persona for the bot
         const context = `
