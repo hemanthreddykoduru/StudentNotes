@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash"});
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
         // Context / Persona for the bot
         const context = `
@@ -65,6 +65,15 @@ router.post('/', async (req, res) => {
 
     } catch (error) {
         console.error('Gemini Chat Error:', error);
+        
+        // Handle 404 (Model not found) specifically to guide user
+        if (error.message.includes('404') || error.message.includes('not found')) {
+            return res.status(500).json({ 
+                error: 'Invalid API Key', 
+                message: 'Your API Key does not support "gemini-1.5-flash". Please create a new key in a standard Google Cloud project.'
+            });
+        }
+
         res.status(500).json({ 
             error: 'Failed to generate response',
             details: error.message,
